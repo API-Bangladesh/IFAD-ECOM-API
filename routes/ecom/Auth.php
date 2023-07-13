@@ -26,7 +26,9 @@ Route::post('/register', function (Request $request) {
         $validator = Validator::make($request->all(), [
             'name' => ['required'],
             'email' => ['required'],
-            'password' => ['required'],
+            'password' => 'required|min:6|confirmed',
+            'password_confirmation' => 'required|min:6',
+            'agree' => ['required'],
         ]);
 
         if ($validator->fails()) {
@@ -45,9 +47,6 @@ Route::post('/register', function (Request $request) {
     }
 });
 
-/**
- *
- */
 Route::post('/login', function (Request $request) {
     try {
         $validator = Validator::make($request->all(), [
@@ -75,9 +74,6 @@ Route::post('/login', function (Request $request) {
     }
 });
 
-/**
- *
- */
 Route::post('/logout', function (Request $request) {
     try {
         $authorization = $request->header('authorization');
@@ -98,14 +94,8 @@ Route::post('/logout', function (Request $request) {
     }
 });
 
-/**
- *
- */
-Route::group(['middleware' => 'isCustomer'], function () {
 
-    /**
-     *
-     */
+Route::group(['middleware' => 'isCustomer'], function () {
     Route::put('/change-password', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [

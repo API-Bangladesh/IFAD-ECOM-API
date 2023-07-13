@@ -17,9 +17,6 @@ use Illuminate\Support\Facades\Validator;
 |
 */
 
-/**
- *
- */
 Route::post('/send-contact-form', function (Request $request) {
     try {
         $validator = Validator::make($request->all(), [
@@ -51,4 +48,41 @@ Route::post('/send-contact-form', function (Request $request) {
     }
 
     return make_success_response("Email sent successfully.");
+});
+
+Route::post('/send-b2b-sale-form', function (Request $request) {
+    try {
+        $validator = Validator::make($request->all(), [
+            'name' => ['required'],
+            'product_name' => ['required'],
+            'product_code' => ['nullable'],
+            'product_quantity' => ['required'],
+            'contact_number' => ['required'],
+            'email_address' => ['required', 'email'],
+        ]);
+
+        if ($validator->fails()) {
+            return make_validation_error_response($validator->getMessageBag());
+        }
+
+        $data = [
+            'name' => $request->name,
+            'product_name' => $request->product_name,
+            'product_code' => $request->product_code,
+            'product_quantity' => $request->product_quantity,
+            'contact_number' => $request->contact_number,
+            'email_address' => $request->email_address
+        ];
+
+        Mail::send(['text' => 'Email.send_b2b_sale_form'], $data, function ($message) use ($data) {
+            $message->to(config('mail.contact_form_recipient_email'));
+            $message->from($data["email_address"], $data["name"]);
+            $message->subject("IFAD ECOM: B2B Sale Request");
+        });
+
+    } catch (Exception $exception) {
+        return make_error_response($exception->getMessage());
+    }
+
+    return make_success_response("Mail sent successfully.");
 });

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static findOrFail($id)
  * @method static paginate()
  * @method static find(int $int)
+ * @method static where(string $string, array|string $authorization)
  */
 class Customer extends Model
 {

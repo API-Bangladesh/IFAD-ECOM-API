@@ -9,6 +9,7 @@ use App\Models\Product;
 /**
  * @method static paginate()
  * @method static findOrFail($id)
+ * @method static get()
  */
 class Category extends Model
 {

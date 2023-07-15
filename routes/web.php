@@ -79,6 +79,10 @@ $router->get('/search/{name}', 'SearchController@Search');
 
 /*Ecom*/
 $router->group(['prefix' => 'ecom'], function () use ($router) {
+    $router->get('/', function (){
+        return 'IFAD Ecom Ready';
+    });
+
     include_once 'ecom/Auth.php';
     include_once 'ecom/Wishlist.php';
     include_once 'ecom/Combo.php';

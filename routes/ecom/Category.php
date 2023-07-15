@@ -20,7 +20,12 @@ use Illuminate\Support\Facades\Route;
  */
 Route::get('/categories', function (Request $request) {
     try {
-        return Category::paginate();
+        if ($request->paginate === 'yes') {
+            return Category::paginate();
+        }
+
+        return Category::get();
+
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }

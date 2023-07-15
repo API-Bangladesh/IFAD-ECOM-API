@@ -32,7 +32,11 @@ Route::get('/inventories', function (Request $request) {
             $q->limit($request->limit);
         });
 
-        return $query->paginate();
+        if ($request->paginate === 'yes') {
+            return $query->paginate();
+        } else {
+            return $query->get();
+        }
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }
@@ -57,7 +61,11 @@ Route::get('/inventories/discounted', function (Request $request) {
             $q->limit($request->limit);
         });
 
-        return $query->paginate();
+        if ($request->paginate === 'yes') {
+            return $query->paginate();
+        } else {
+            return $query->get();
+        }
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }
@@ -83,7 +91,11 @@ Route::get('/inventories/categories/{categoryId}', function (Request $request, $
             $q->limit($request->limit);
         });
 
-        return $query->paginate();
+        if ($request->paginate === 'yes') {
+            return $query->paginate();
+        } else {
+            return $query->get();
+        }
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }

@@ -30,7 +30,7 @@ class Wishlist extends Model
      */
     public function inventory()
     {
-        return $this->belongsTo(Inventory::class, 'inventory_id', 'id');
+        return $this->belongsTo(Inventory::class, 'inventory_id', 'id')->with('product', 'product.category');
     }
 
     /**

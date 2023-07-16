@@ -25,11 +25,46 @@ Route::group([], function () {
      */
     Route::get('/reviews', function (Request $request) {
         try {
-            return Review::with('customer', 'inventory', 'combo')->paginate();
+            $query = Review::query();
+            $query->with('customer', 'inventory', 'combo');
+
+            $query->when($request->limit, function ($q) use ($request) {
+                $q->limit($request->limit);
+            });
+
+            if ($request->paginate === 'yes') {
+                return $query->paginate($request->get('limit', 15));
+            } else {
+                return $query->get();
+            }
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }
     });
+
+    /**
+     *
+     */
+    Route::get('/reviews/inventories/{inventoryId}', function (Request $request, $inventoryId) {
+        try {
+            $query = Review::query();
+            $query->with('customer', 'inventory', 'combo');
+            $query->where('inventory_id', $inventoryId);
+
+            $query->when($request->limit, function ($q) use ($request) {
+                $q->limit($request->limit);
+            });
+
+            if ($request->paginate === 'yes') {
+                return $query->paginate($request->get('limit', 15));
+            } else {
+                return $query->get();
+            }
+        } catch (Exception $exception) {
+            return make_error_response($exception->getMessage());
+        }
+    });
+
 
     /**
      *

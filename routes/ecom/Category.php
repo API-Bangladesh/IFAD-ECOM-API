@@ -20,12 +20,17 @@ use Illuminate\Support\Facades\Route;
  */
 Route::get('/categories', function (Request $request) {
     try {
+        $query = Category::query();
+
+        $query->when($request->limit, function ($q) use ($request) {
+            $q->limit($request->limit);
+        });
+
         if ($request->paginate === 'yes') {
-            return Category::paginate();
+            return $query->paginate($request->get('limit', 15));
+        } else {
+            return $query->get();
         }
-
-        return Category::get();
-
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }

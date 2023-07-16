@@ -21,9 +21,10 @@ Route::group(['middleware' => 'isCustomer'], function () {
     /**
      *
      */
-    Route::get('/customers', function () {
+    Route::get('/customers', function (Request $request) {
         try {
-            return Customer::paginate();
+            $query = Customer::query();
+            return $query->paginate($request->get('limit', 15));
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

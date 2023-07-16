@@ -31,7 +31,11 @@ Route::get('/combos', function (Request $request) {
             $q->limit($request->limit);
         });
 
-        return $query->paginate();
+        if ($request->paginate === 'yes') {
+            return $query->paginate($request->get('limit', 15));
+        } else {
+            return $query->get();
+        }
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }
@@ -53,9 +57,15 @@ Route::get('/combos/{id}/show', function ($id) {
  */
 Route::get('/combos/combo-categories/{comboCategoryId}', function (Request $request, $comboCategoryId) {
     try {
-        return Combo::with(['comboCategory', 'comboItems', 'comboImages'])
-            ->where('combo_category_id', $comboCategoryId)
-            ->paginate();
+        $query = Combo::query();
+        $query->with(['comboCategory', 'comboItems', 'comboImages']);
+        $query->where('combo_category_id', $comboCategoryId);
+
+        if ($request->paginate === 'yes') {
+            return $query->paginate($request->get('limit', 15));
+        } else {
+            return $query->get();
+        }
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }

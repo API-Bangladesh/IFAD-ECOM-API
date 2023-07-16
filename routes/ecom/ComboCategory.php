@@ -20,7 +20,17 @@ use Illuminate\Support\Facades\Route;
  */
 Route::get('/combo-categories', function (Request $request) {
     try {
-        return ComboCategory::paginate();
+        $query = ComboCategory::query();
+
+        $query->when($request->limit, function ($q) use ($request) {
+            $q->limit($request->limit);
+        });
+
+        if ($request->paginate === 'yes') {
+            return $query->paginate($request->get('limit', 15));
+        } else {
+            return $query->get();
+        }
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }

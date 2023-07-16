@@ -21,14 +21,21 @@ use Illuminate\Support\Facades\Validator;
 /**
  *
  */
-Route::group(['middleware' => 'isCustomer'], function(){
+Route::group(['middleware' => 'isCustomer'], function () {
 
     /**
      *
      */
-    Route::get('/orders', function () {
+    Route::get('/orders', function (Request $request) {
         try {
-            return Order::with('customer', 'paymentMethod', 'orderItems')->paginate();
+            $query = Order::query();
+            $query->with('customer', 'paymentMethod', 'orderItems');
+
+            $query->when($request->limit, function ($q) use ($request) {
+                $q->limit($request->limit);
+            });
+
+            return $query->paginate($request->get('limit', 15));
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

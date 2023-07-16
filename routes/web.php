@@ -97,4 +97,5 @@ $router->group(['prefix' => 'ecom'], function () use ($router) {
     include_once 'ecom/Common.php';
     include_once 'ecom/Review.php';
     include_once 'ecom/Banner.php';
+    include_once 'ecom/Brand.php';
 });

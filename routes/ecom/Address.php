@@ -22,9 +22,10 @@ Route::group(['middleware' => 'isCustomer'], function () {
     /**
      *
      */
-    Route::get('/addresses', function () {
+    Route::get('/addresses', function (Request $request) {
         try {
-            return Address::where('customer_id', auth_customer('id'))->paginate();
+            return Address::where('customer_id', auth_customer('id'))
+                ->paginate($request->get('limit', 15));
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

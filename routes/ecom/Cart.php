@@ -32,6 +32,25 @@ Route::group(['middleware' => 'isCustomer'], function () {
     /**
      *
      */
+    Route::get('/cart/total', function () {
+        try {
+            $cart = Session::get('cart', []);
+
+            $total = 0;
+
+            foreach ($cart as $item){
+                $total += $item['total'];
+            }
+
+            return $total;
+        } catch (Exception $exception) {
+            return make_error_response($exception->getMessage());
+        }
+    });
+
+    /**
+     *
+     */
     Route::post('/cart', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [
@@ -51,6 +70,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 'inventory_id' => $request->inventory_id,
                 'quantity' => $request->quantity,
                 'unit_price' => $request->unit_price,
+                'total' => $request->quantity * $request->unit_price,
             ];
 
             $cart[] = $new;
@@ -101,7 +121,10 @@ Route::group(['middleware' => 'isCustomer'], function () {
 
             foreach ($cart as $key => $item){
                 if($item['id'] == $id){
-                    $cart[$key]['quantity'] = $item['quantity'] + $request->quantity;
+                    $newQty = $item['quantity'] + $request->quantity;
+
+                    $cart[$key]['quantity'] = $newQty;
+                    $cart[$key]['total'] = $item['unit_price'] * $newQty;
                 }
             }
 

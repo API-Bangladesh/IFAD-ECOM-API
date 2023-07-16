@@ -2,6 +2,7 @@
 
 use App\Http\Resources\InventoryResource;
 use App\Models\Inventory;
+use App\Models\InventoryVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -133,6 +134,22 @@ Route::get('/inventories/{id}/show', function ($id) {
         $inventory =  Inventory::with(['product', 'inventoryVariants', 'inventoryImages'])->findOrFail($id);
 
         return new InventoryResource($inventory);
+    } catch (Exception $exception) {
+        return make_error_response($exception->getMessage());
+    }
+});
+
+/**
+ *
+ */
+Route::post('/inventories/{inventoryId}/variations', function (Request $request, $inventoryId) {
+    try {
+
+        $inventory =  InventoryVariant::where('inventory_id', $inventoryId)
+            ->whereIn('variant_id', $request->variation_ids)
+            ->get();
+
+        return $inventory;
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }

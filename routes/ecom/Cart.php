@@ -57,6 +57,9 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 'inventory_id' => ['required'],
                 'quantity' => ['required'],
                 'unit_price' => ['required'],
+                'product_type' => ['required'],
+                'product_name' => ['required'],
+                'product_image' => ['required'],
             ]);
 
             if ($validator->fails()) {
@@ -71,6 +74,13 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 'quantity' => $request->quantity,
                 'unit_price' => $request->unit_price,
                 'total' => $request->quantity * $request->unit_price,
+
+                'product_type' => $request->product_type,
+                'product_name' => $request->product_name,
+                'product_category_name' => $request->product_category_name,
+                'product_sub_category_name' => $request->product_sub_category_name,
+                'product_image' => $request->product_image,
+                'product_variations' => $request->product_variations
             ];
 
             $cart[] = $new;

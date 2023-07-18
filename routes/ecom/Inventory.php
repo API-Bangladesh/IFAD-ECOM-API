@@ -131,25 +131,9 @@ Route::get('/inventories/subCategories/{subCategoryId}', function (Request $requ
 Route::get('/inventories/{id}/show', function ($id) {
     try {
 
-        $inventory =  Inventory::with(['product', 'inventoryVariants', 'inventoryImages'])->findOrFail($id);
+        $inventory = Inventory::with(['product', 'inventoryVariants', 'inventoryImages'])->findOrFail($id);
 
         return new InventoryResource($inventory);
-    } catch (Exception $exception) {
-        return make_error_response($exception->getMessage());
-    }
-});
-
-/**
- *
- */
-Route::post('/inventories/{inventoryId}/variations', function (Request $request, $inventoryId) {
-    try {
-
-        $inventory =  InventoryVariant::where('inventory_id', $inventoryId)
-            ->whereIn('variant_id', $request->variation_ids)
-            ->get();
-
-        return $inventory;
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }
@@ -174,6 +158,56 @@ Route::get('/inventories/search', function (Request $request) {
         });
 
         return $query->paginate();
+    } catch (Exception $exception) {
+        return make_error_response($exception->getMessage());
+    }
+});
+
+
+/**
+ *
+ */
+Route::post('/inventories/{inventoryId}/inventory-variants', function (Request $request, $inventoryId) {
+    try {
+
+        if (!$request->filled('inventory_variant_ids')) {
+            throw new Exception('The given data was invalid!');
+        }
+
+        $inventoryVariantIds = $request->input('inventory_variant_ids', []);
+
+        $inventoryVariation = InventoryVariant::with('inventory')
+            ->whereIn('id', $inventoryVariantIds)
+            ->where('inventory_id', '!=', $inventoryId)
+            ->first();
+
+        return $inventoryVariation;
+    } catch (Exception $exception) {
+        return make_error_response($exception->getMessage());
+    }
+});
+
+/**
+ *
+ */
+Route::get('/inventories/products/{productId}/variations/options', function ($productId) {
+    try {
+        $inventoryIds = Inventory::where('product_id', $productId)->get()->pluck('id');
+
+        $inventoryVariants = InventoryVariant::with('variant', 'variantOption')->whereIn('inventory_id', $inventoryIds)->get();
+
+        $variantOptions = [];
+        foreach ($inventoryVariants as $inventoryVariant) {
+            if ($inventoryVariant->variant && $inventoryVariant->variantOption) {
+                $variantOptions[$inventoryVariant->variant->name][] = [
+                    'inventory_variant_id' => $inventoryVariant->id,
+                    'variant_option_name' => $inventoryVariant->variantOption->name
+                ];
+            }
+        }
+
+        return $variantOptions;
+
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }

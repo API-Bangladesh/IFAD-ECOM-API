@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @method static where(string $string, $inventoryId)
+ * @method static findOrFail($inventoryId)
+ * @method static find($inventoryId)
+ */
 class Inventory extends Model
 {
     use HasFactory;

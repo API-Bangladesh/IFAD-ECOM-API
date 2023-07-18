@@ -7,12 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static where(string $string, $inventoryId)
+ * @method static whereIn(string $string, $inventory_variant_ids)
  */
 class InventoryVariant extends Model
 {
     use HasFactory;
 
     protected $fillable = [];
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function inventory()
+    {
+        return $this->belongsTo(Inventory::class, 'inventory_id', 'id');
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

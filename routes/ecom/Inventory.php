@@ -94,7 +94,7 @@ Route::get('/inventories/categories/{categoryId}', function (Request $request, $
         });
 
         if ($request->paginate === 'yes') {
-            return $query->paginate($request->get('limit', 15));
+            return InventoryResource::collection($query->paginate($request->get('limit', 15)));
         } else {
             return $query->get();
         }

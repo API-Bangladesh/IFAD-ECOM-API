@@ -19,21 +19,51 @@ use Illuminate\Support\Facades\Route;
  */
 Route::get('/brands', function (Request $request) {
 
-    $banners = [
+    $brands = [
         [
             'id' => 1,
             'title' => "Brand 1",
-            'image' => "https://img.freepik.com/premium-psd/sport-shoes-sale-social-media-post-facebook-banner-web-banner-template_70055-842.jpg",
+            'image' => "https://w7.pngwing.com/pngs/275/961/png-transparent-chanel-logo-brand-gucci-logo-text-trademark-fashion.png",
         ],
         [
             'id' => 2,
             'title' => "Brand 2",
-            'image' => "https://png.pngtree.com/background/20210715/original/pngtree-black-elegant-high-end-product-banner-base-map-background-picture-image_1303664.jpg",
-        ]
+            'image' => "https://w7.pngwing.com/pngs/732/34/png-transparent-logo-amazon-com-brand-flipkart-others-text-orange-logo-thumbnail.png",
+        ],
+        [
+            'id' => 3,
+            'title' => "Brand 2",
+            'image' => "https://www.nicepng.com/png/detail/28-283120_logos-of-different-brands.png",
+        ],
+        [
+            'id' => 4,
+            'title' => "Brand 2",
+            'image' => "https://w7.pngwing.com/pngs/732/34/png-transparent-logo-amazon-com-brand-flipkart-others-text-orange-logo-thumbnail.png",
+        ],
+        [
+            'id' => 1,
+            'title' => "Brand 1",
+            'image' => "https://e7.pngegg.com/pngimages/64/316/png-clipart-logo-brand-lacoste-clothing-crocodile-crocodile-animals-text.png",
+        ],
+        [
+            'id' => 2,
+            'title' => "Brand 2",
+            'image' => "https://w7.pngwing.com/pngs/732/34/png-transparent-logo-amazon-com-brand-flipkart-others-text-orange-logo-thumbnail.png",
+        ],
+        [
+            'id' => 3,
+            'title' => "Brand 2",
+            'image' => "https://w7.pngwing.com/pngs/732/34/png-transparent-logo-amazon-com-brand-flipkart-others-text-orange-logo-thumbnail.png",
+        ],
+        [
+            'id' => 4,
+            'title' => "Brand 2",
+            'image' => "https://www.pngitem.com/pimgs/m/249-2491766_sports-brand-logo-png-transparent-png.png",
+        ],
     ];
 
     try {
-        return $banners;
+        return $brands;
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }

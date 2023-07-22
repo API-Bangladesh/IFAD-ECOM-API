@@ -16,7 +16,14 @@ class Review extends Model
     const STATUS_APPROVED = 1;
     const STATUS_PENDING = 2;
 
-    protected $fillable = [];
+    protected $fillable = [
+        'ratting_number',
+        'comments',
+        'customer_id',
+        'inventory_id',
+        'combo_id',
+        'status',
+    ];
 
     protected $table = 'reviews';
 

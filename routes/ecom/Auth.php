@@ -41,7 +41,13 @@ Route::post('/register', function (Request $request) {
         $customer->password = Hash::make($request->password);
         $customer->save();
 
-        return make_success_response("Record saved successfully.");
+        $customer->api_token = Str::random(60);
+        $customer->update();
+
+        return make_success_response("Register successfully.", [
+            'customer' => $customer,
+            'token' => $customer->api_token
+        ]);
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }
@@ -67,7 +73,8 @@ Route::post('/login', function (Request $request) {
         }
 
         return make_success_response("Login successfully.", [
-            'api_token' => $customer->api_token
+            'customer' => $customer,
+            'token' => $customer->api_token
         ]);
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());

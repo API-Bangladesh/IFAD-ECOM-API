@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Validator;
 |
 */
 
-Route::group([], function () {
+
 
     /**
      *
@@ -42,97 +42,28 @@ Route::group([], function () {
         }
     });
 
-    /**
-     *
-     */
-    Route::get('/reviews/inventories/{inventoryId}', function (Request $request, $inventoryId) {
-        try {
-            $query = Review::query();
-            $query->with('customer', 'inventory', 'combo');
-            $query->where('inventory_id', $inventoryId);
+/**
+ *
+ */
+Route::get('/reviews/inventories/{inventoryId}', function (Request $request, $inventoryId) {
+    try {
+        $query = Review::query();
+        $query->with('customer', 'inventory', 'combo');
+        $query->where('inventory_id', $inventoryId);
 
-            $query->when($request->limit, function ($q) use ($request) {
-                $q->limit($request->limit);
-            });
+        $query->when($request->limit, function ($q) use ($request) {
+            $q->limit($request->limit);
+        });
 
-            if ($request->paginate === 'yes') {
-                return $query->paginate($request->get('limit', 15));
-            } else {
-                return $query->get();
-            }
-        } catch (Exception $exception) {
-            return make_error_response($exception->getMessage());
+        if ($request->paginate === 'yes') {
+            return $query->paginate($request->get('limit', 15));
+        } else {
+            return $query->get();
         }
-    });
-
-
-    /**
-     *
-     */
-    Route::get('/reviews/{id}/show', function ($id) {
-        try {
-            return Review::with('customer', 'inventory', 'combo')->findOrFail($id);
-        } catch (Exception $exception) {
-            return make_error_response($exception->getMessage());
-        }
-    });
-
-    /**
-     *
-     */
-    Route::post('/reviews', function (Request $request) {
-        try {
-            $validator = Validator::make($request->all(), [
-                'ratting_number' => ['required', 'numeric'],
-                'comments' => ['required'],
-                'customer_id' => ['required', 'numeric'],
-                'inventory_id' => ['nullable', 'numeric'],
-                'combo_id' => ['nullable', 'numeric'],
-            ]);
-
-            if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
-            }
-
-            $isExists = Review::where('customer_id', $request->customer_id)
-                ->where('inventory_id', $request->inventory_id)->exists();
-
-            $orIsExists = Review::where('customer_id', $request->customer_id)
-                ->where('combo_id', $request->combo_id)->exists();
-
-            if ($isExists || $orIsExists) {
-                return make_error_response("Already existed.");
-            }
-
-            $review = new Review();
-            $review->customer_id = $request->customer_id;
-            $review->inventory_id = $request->inventory_id;
-            $review->combo_id = $request->combo_id;
-            $review->status = Review::STATUS_PENDING;
-            $review->save();
-
-            return make_success_response("Record saved successfully. Waiting for approved!");
-        } catch (Exception $exception) {
-            return make_error_response($exception->getMessage());
-        }
-    });
-
-    /**
-     *
-     */
-    Route::delete('/reviews/{id}', function ($id) {
-        try {
-            $reviews = Review::findOrFail($id);
-
-            if ($reviews) {
-                $reviews->delete();
-            }
-
-            return make_success_response("Record deleted successfully.");
-        } catch (Exception $exception) {
-            return make_error_response($exception->getMessage());
-        }
-    });
+    } catch (Exception $exception) {
+        return make_error_response($exception->getMessage());
+    }
+});
 
     Route::get('inventories/{inventoryId}/reviews/ability', function ($inventoryId) {
         try {
@@ -142,12 +73,12 @@ Route::group([], function () {
 
             if ($exists) {
                 return response()->json([
-                    "capability" => true
+                    "capability" => false
                 ]);
             }
 
             return response()->json([
-                "capability" => false
+                "capability" => true
             ]);
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
@@ -169,6 +100,76 @@ Route::group([], function () {
             return response()->json([
                 "capability" => false
             ]);
+        } catch (Exception $exception) {
+            return make_error_response($exception->getMessage());
+        }
+    });
+
+Route::group(['middleware' => 'isCustomer'], function () {
+    /**
+     *
+     */
+    Route::post('/reviews', function (Request $request) {
+        try {
+            $validator = Validator::make($request->all(), [
+                'ratting_number' => ['required'],
+                'comments' => ['required'],
+                'inventory_id' => ['nullable', 'numeric'],
+                'combo_id' => ['nullable', 'numeric'],
+            ]);
+
+            if ($validator->fails()) {
+                return make_validation_error_response($validator->getMessageBag());
+            }
+
+            $isExists = Review::where('customer_id', auth_customer('id'))
+                ->where('inventory_id', $request->inventory_id)->exists();
+
+            $orIsExists = Review::where('customer_id', auth_customer('id'))
+                ->where('combo_id', $request->combo_id)->exists();
+
+            if ($isExists || $orIsExists) {
+                return make_error_response("Already existed.");
+            }
+
+            $review = new Review();
+            $review->ratting_number = $request->ratting_number;
+            $review->comments = $request->comments;
+            $review->customer_id = auth_customer('id');
+            $review->inventory_id = $request->inventory_id;
+            $review->combo_id = $request->combo_id;
+            $review->status = Review::STATUS_PENDING;
+            $review->save();
+
+            return make_success_response("Record saved successfully. Waiting for approved!");
+        } catch (Exception $exception) {
+            return make_error_response($exception->getMessage());
+        }
+    });
+
+    /**
+     *
+     */
+    Route::get('/reviews/{id}/show', function ($id) {
+        try {
+            return Review::with('customer', 'inventory', 'combo')->findOrFail($id);
+        } catch (Exception $exception) {
+            return make_error_response($exception->getMessage());
+        }
+    });
+
+    /**
+     *
+     */
+    Route::delete('/reviews/{id}', function ($id) {
+        try {
+            $reviews = Review::findOrFail($id);
+
+            if ($reviews) {
+                $reviews->delete();
+            }
+
+            return make_success_response("Record deleted successfully.");
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

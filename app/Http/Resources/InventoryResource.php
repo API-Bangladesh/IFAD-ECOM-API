@@ -15,7 +15,8 @@ class InventoryResource extends JsonResource
     public function toArray($request)
     {
         $data = $this->resource->toArray();
-        $data['star_rating'] = ceil($this->reviews()->avg('ratting_number'));
+        $data['star_ratting'] = ceil($this->reviews()->avg('ratting_number'));
+        $data['reviews_count'] = $this->reviews()->count();
 
         return $data;
     }

@@ -24,8 +24,9 @@ Route::group(['middleware' => 'isCustomer'], function () {
      */
     Route::get('/addresses', function (Request $request) {
         try {
-            return Address::where('customer_id', auth_customer('id'))
-                ->paginate($request->get('limit', 15));
+            return Address::with(['division', 'district', 'upazila'])
+                ->where('customer_id', auth_customer('id'))
+                ->get();
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

@@ -58,12 +58,12 @@ Route::group(['middleware' => 'isCustomer'], function () {
     Route::post('/orders', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [
-                'customer_id' => ['required'],
-                'order_type' => ['required'],
                 'shipping_address' => ['required'],
                 'billing_address' => ['required'],
                 'payment_method_id' => ['required'],
-                'cart' => ['required', 'array', 'min:1'],
+                'cart' => ['required'],
+                'sub_total' => ['required'],
+                'grand_total' => ['required'],
             ]);
 
             if ($validator->fails()) {
@@ -72,15 +72,14 @@ Route::group(['middleware' => 'isCustomer'], function () {
 
             $order = new Order();
             $order->order_date = Carbon::now();
-            $order->order_type = $request->order_type;
             $order->customer_id = auth_customer('id');
             $order->shipping_address = $request->shipping_address;
             $order->billing_address = $request->billing_address;
-            $order->total = 0;
+            $order->sub_total = $request->sub_total;
             $order->discount = 0;
             $order->shipping_charge = 0;
             $order->tax = 0;
-            $order->grand_total = 0;
+            $order->grand_total = $request->grand_total;
             $order->payment_method_id = $request->payment_method_id;
             $order->payment_details = json_encode([]);
             $order->payment_status_id = 1;
@@ -93,6 +92,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 $total += $item['quantity'] * $item['unit_price'];
 
                 $orderItem = new OrderItem();
+                $orderItem->type = $item['product_type'];
                 $orderItem->order_id = $order->id;
                 $orderItem->inventory_id = $item['inventory_id'] ? $item['inventory_id'] : null;
                 $orderItem->combo_id = $item['combo_id'] ? $item['combo_id'] : null;

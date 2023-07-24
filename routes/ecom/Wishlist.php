@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Customer;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -46,11 +47,10 @@ Route::group(['middleware' => 'isCustomer'], function () {
     /**
      *
      */
-    Route::post('/wishlist', function (Request $request) {
+    Route::post('/wishlist/sync', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [
-                'customer_id' => ['required', 'numeric',],
-                'inventory_id' => ['required', 'numeric',],
+                'inventory_id' => ['required', 'numeric']
             ]);
 
             if ($validator->fails()) {
@@ -64,12 +64,47 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 return make_error_response("Already existed.");
             }
 
-            $wishlist = new Wishlist();
-            $wishlist->customer_id = $request->customer_id;
-            $wishlist->inventory_id = $request->inventory_id;
-            $wishlist->save();
+            $wishlist = Wishlist::where('customer_id', auth_customer('id'))
+                ->where('inventory_id', $request->inventory_id)->first();
 
-            return make_success_response("Record saved successfully.");
+            if ($wishlist) {
+                $wishlist->delete();
+
+                return make_success_response("Record deleted successfully.", [
+                    'favourite' => false
+                ]);
+            }
+
+            Wishlist::create([
+                'customer_id' => auth_customer('id'),
+                'inventory_id' => $request->inventory_id
+            ]);
+
+            return make_success_response("Record saved successfully.", [
+                'favourite' => true
+            ]);
+        } catch (Exception $exception) {
+            return make_error_response($exception->getMessage());
+        }
+    });
+
+    /**
+     *
+     */
+    Route::get('/wishlist/inventories/{inventoryId}/status', function (Request $request, $inventoryId) {
+        try {
+            $wishlist = Wishlist::where('customer_id', auth_customer('id'))
+                ->where('inventory_id', $inventoryId)->first();
+
+            if ($wishlist) {
+                return response()->json([
+                    'favourite' => true
+                ]);
+            }
+
+            return response()->json([
+                'favourite' => false
+            ]);
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

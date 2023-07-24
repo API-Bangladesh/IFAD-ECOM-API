@@ -13,7 +13,10 @@ class Wishlist extends Model
 {
     use HasFactory;
 
-    protected $fillable = [];
+    protected $fillable = [
+        'customer_id',
+        'inventory_id'
+    ];
 
     protected $table = 'wishlist';
 

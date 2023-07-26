@@ -149,12 +149,15 @@ Route::get('/inventories/search', function (Request $request) {
         $query = Inventory::query();
         $query->groupBy('product_id');
         $query->with(['product', 'inventoryVariants', 'inventoryImages']);
-        $query->whereHas('product', function ($query) use ($keyword) {
-            $query->where('title', 'LIKE', "%" . $keyword . "%");
+
+        $query->when($keyword, function ($query) use ($keyword) {
+            $query->whereHas('product', function ($query) use ($keyword) {
+                $query->where('title', 'LIKE', "%" . $keyword . "%");
+            });
         });
 
-        $query->when($request->limit, function ($q) use ($request) {
-            $q->limit($request->limit);
+        $query->when($request->limit, function ($query) use ($request) {
+            $query->limit($request->limit);
         });
 
         return $query->paginate();

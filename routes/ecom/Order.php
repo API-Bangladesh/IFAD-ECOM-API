@@ -97,10 +97,10 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 $total += $item['quantity'] * $item['unit_price'];
 
                 $orderItem = new OrderItem();
-                $orderItem->type = $item['product_type'];
+                $orderItem->type = $item['type'];
                 $orderItem->order_id = $order->id;
-                $orderItem->inventory_id = $item['inventory_id'] ? $item['inventory_id'] : null;
-                // $orderItem->combo_id = $item['combo_id'] ? $item['combo_id'] : null;
+                $orderItem->inventory_id = isset($item['inventory_id']) ? $item['inventory_id'] : null;
+                $orderItem->combo_id = isset($item['combo_id']) ? $item['combo_id'] : null;
                 $orderItem->quantity = $item['quantity'];
                 $orderItem->unit_price = $item['unit_price'];
                 $orderItem->save();

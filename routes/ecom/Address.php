@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Address;
-use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -18,10 +17,6 @@ use Illuminate\Validation\Rule;
 |
 */
 Route::group(['middleware' => 'isCustomer'], function () {
-
-    /**
-     *
-     */
     Route::get('/addresses', function (Request $request) {
         try {
             return Address::with(['division', 'district', 'upazila'])
@@ -32,9 +27,6 @@ Route::group(['middleware' => 'isCustomer'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::get('/addresses/{id}/show', function ($id) {
         try {
             return Address::where('customer_id', auth_customer('id'))->findOrFail($id);
@@ -43,20 +35,17 @@ Route::group(['middleware' => 'isCustomer'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::post('/addresses', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [
                 'title' => ['required', Rule::unique('addresses', 'title')],
+                'name' => ['required'],
                 'address_line_1' => ['required'],
-                'address_line_2' => ['nullable'],
                 'division_id' => ['required', 'numeric'],
                 'district_id' => ['required', 'numeric'],
                 'upazila_id' => ['required', 'numeric'],
                 'postcode' => ['required'],
-                'phone' => ['required'],
+                'phone' => ['required']
             ]);
 
             if ($validator->fails()) {
@@ -65,6 +54,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
 
             $address = new Address();
             $address->title = $request->title;
+            $address->name = $request->name;
             $address->address_line_1 = $request->address_line_1;
             $address->address_line_2 = $request->address_line_2;
             $address->division_id = $request->division_id;
@@ -72,6 +62,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $address->upazila_id = $request->upazila_id;
             $address->postcode = $request->postcode;
             $address->phone = $request->phone;
+            $address->email = $request->email;
             $address->customer_id = auth_customer('id');
             $address->is_default_billing = null;
             $address->is_default_shipping = null;
@@ -83,20 +74,17 @@ Route::group(['middleware' => 'isCustomer'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::put('/addresses/{id}', function (Request $request, $id) {
         try {
             $validator = Validator::make($request->all(), [
                 'title' => ['required', Rule::unique('addresses', 'title')->ignore($id, 'id')],
+                'email' => ['required'],
                 'address_line_1' => ['required'],
-                'address_line_2' => ['nullable'],
                 'division_id' => ['required', 'numeric'],
                 'district_id' => ['required', 'numeric'],
                 'upazila_id' => ['required', 'numeric'],
                 'postcode' => ['required'],
-                'phone' => ['required'],
+                'phone' => ['required']
             ]);
 
             if ($validator->fails()) {
@@ -105,6 +93,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
 
             $address = Address::findOrFail($id);
             $address->title = $request->title;
+            $address->name = $request->name;
             $address->address_line_1 = $request->address_line_1;
             $address->address_line_2 = $request->address_line_2;
             $address->division_id = $request->division_id;
@@ -112,6 +101,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $address->upazila_id = $request->upazila_id;
             $address->postcode = $request->postcode;
             $address->phone = $request->phone;
+            $address->email = $request->email;
             $address->update();
 
             return make_success_response("Record saved successfully.");
@@ -120,9 +110,6 @@ Route::group(['middleware' => 'isCustomer'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::delete('/addresses/{id}', function ($id) {
         try {
             $address = Address::findOrFail($id);
@@ -137,12 +124,8 @@ Route::group(['middleware' => 'isCustomer'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::put('/addresses/{id}/default-shipping', function (Request $request, $id) {
         try {
-
             Address::get()->map(function ($address) {
                 $address->is_default_shipping = Null;
                 $address->update();
@@ -158,9 +141,6 @@ Route::group(['middleware' => 'isCustomer'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::put('/addresses/{id}/default-billing', function (Request $request, $id) {
         try {
 

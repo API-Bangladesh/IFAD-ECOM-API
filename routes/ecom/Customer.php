@@ -44,7 +44,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
     /**
      *
      */
-    Route::put('/customers/{id}', function (Request $request, $id) {
+    Route::put('/customers', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [
                 'name' => ['required'],
@@ -58,7 +58,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 return make_validation_error_response($validator->getMessageBag());
             }
 
-            $customer = Customer::findOrFail($id);
+            $customer = Customer::findOrFail(auth_customer('id'));
             $customer->name = $request->name;
             $customer->address = $request->address;
             $customer->date_of_birth = $request->date_of_birth;
@@ -66,7 +66,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $customer->phone_number = $request->phone_number;
             $customer->save();
 
-            return make_success_response("Record saved successfully.");
+            return make_success_response("Record saved successfully.", $customer);
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

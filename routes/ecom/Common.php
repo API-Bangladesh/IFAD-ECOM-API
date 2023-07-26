@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\PaymentMethod;
+use App\Models\B2B;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +53,7 @@ Route::post('/send-contact-form', function (Request $request) {
 Route::post('/send-b2b-sale-form', function (Request $request) {
     try {
         $validator = Validator::make($request->all(), [
+            'country_name' => ['required'],
             'name' => ['required'],
             'product_name' => ['required'],
             'product_code' => ['nullable'],
@@ -66,6 +67,7 @@ Route::post('/send-b2b-sale-form', function (Request $request) {
         }
 
         $data = [
+            'country_name' => $request->country_name,
             'name' => $request->name,
             'product_name' => $request->product_name,
             'product_code' => $request->product_code,
@@ -73,6 +75,17 @@ Route::post('/send-b2b-sale-form', function (Request $request) {
             'contact_number' => $request->contact_number,
             'email_address' => $request->email_address
         ];
+
+        B2B::create([
+            'country_name' => $request->country_name,
+            'name' => $request->name,
+            'product_name' => $request->product_name,
+            'product_code' => $request->product_code,
+            'product_quantity' => $request->product_quantity,
+            'contact_number' => $request->contact_number,
+            'email_address' => $request->email_address,
+            'status' => B2B::STATUS_PENDING,
+        ]);
 
         Mail::send(['text' => 'Email.send_b2b_sale_form'], $data, function ($message) use ($data) {
             $message->to(config('mail.contact_form_recipient_email'));

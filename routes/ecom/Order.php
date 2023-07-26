@@ -30,12 +30,17 @@ Route::group(['middleware' => 'isCustomer'], function () {
         try {
             $query = Order::query();
             $query->with('customer', 'paymentMethod', 'orderItems');
+            $query->where('customer_id', auth_customer('id'));
 
             $query->when($request->limit, function ($q) use ($request) {
                 $q->limit($request->limit);
             });
 
-            return $query->paginate($request->get('limit', 15));
+            if ($request->paginate === 'yes') {
+                return $query->paginate($request->get('limit', 15));
+            } else {
+                return $query->get();
+            }
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }
@@ -63,7 +68,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 'payment_method_id' => ['required'],
                 'cart' => ['required'],
                 'sub_total' => ['required'],
-                'grand_total' => ['required'],
+                'grand_total' => ['required']
             ]);
 
             if ($validator->fails()) {
@@ -82,8 +87,8 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $order->grand_total = $request->grand_total;
             $order->payment_method_id = $request->payment_method_id;
             $order->payment_details = json_encode([]);
-            $order->payment_status_id = 1;
-            $order->order_status_id = 1;
+            $order->order_status_id = Order::ORDER_STATUS_PENDING;
+            $order->payment_status_id = Order::PAYMENT_STATUS_UNPAID;
             $order->save();
 
             $total = 0;
@@ -95,13 +100,13 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 $orderItem->type = $item['product_type'];
                 $orderItem->order_id = $order->id;
                 $orderItem->inventory_id = $item['inventory_id'] ? $item['inventory_id'] : null;
-                $orderItem->combo_id = $item['combo_id'] ? $item['combo_id'] : null;
+                // $orderItem->combo_id = $item['combo_id'] ? $item['combo_id'] : null;
                 $orderItem->quantity = $item['quantity'];
                 $orderItem->unit_price = $item['unit_price'];
                 $orderItem->save();
             }
 
-            $order->total = $total;
+            $order->sub_total = $total;
             $order->grand_total = $total;
             $order->update();
 

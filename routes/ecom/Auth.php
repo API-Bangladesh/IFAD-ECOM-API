@@ -5,7 +5,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -21,6 +20,9 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 |
 */
 
+/**
+ *
+ */
 Route::post('/register', function (Request $request) {
     try {
         $validator = Validator::make($request->all(), [
@@ -71,8 +73,6 @@ Route::post('/login', function (Request $request) {
             $customer->api_token = Str::random(60);
             $customer->update();
         }
-
-        Session::put('customer', $customer);
 
         return make_success_response("Login successfully.", [
             'customer' => $customer,

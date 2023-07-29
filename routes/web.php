@@ -15,6 +15,10 @@
 //product Category List
 use Illuminate\Support\Facades\Session;
 
+$router->get('/', function (){
+    return 'API Server';
+});
+
 $router->get('/categories', 'ProductController@allCategory');
 //product Category id wies subcategory List /{1}
 $router->get('/categories/{id}', 'ProductController@allSubCategory');
@@ -98,6 +102,4 @@ $router->group(['prefix' => 'ecom'], function () use ($router) {
     include_once 'ecom/PaymentMethod.php';
     include_once 'ecom/Common.php';
     include_once 'ecom/Review.php';
-    include_once 'ecom/Banner.php';
-    include_once 'ecom/Brand.php';
 });

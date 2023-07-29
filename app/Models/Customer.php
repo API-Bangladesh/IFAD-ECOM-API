@@ -2,13 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Auth\Authenticatable;
-use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Laravel\Lumen\Auth\Authorizable;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 
 /**
  * @method static findOrFail($id)
@@ -16,10 +10,8 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
  * @method static find(int $int)
  * @method static where(string $string, array|string $authorization)
  */
-class Customer extends Model implements AuthenticatableContract, AuthorizableContract, JWTSubject
+class Customer extends Model
 {
-    use Authenticatable, Authorizable, HasFactory;
-
     protected $fillable = ['name', 'email', 'password', 'token'];
 
     protected $hidden = ['password', 'api_token'];
@@ -54,25 +46,5 @@ class Customer extends Model implements AuthenticatableContract, AuthorizableCon
     public function addresses()
     {
         return $this->hasMany(Address::class);
-    }
-
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
-     */
-    public function getJWTCustomClaims()
-    {
-        return [];
     }
 }

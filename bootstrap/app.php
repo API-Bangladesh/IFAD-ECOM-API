@@ -69,6 +69,7 @@ $app->singleton('session.store', function () use ($app) {
 
 $app->configure('app');
 
+
 /*
 |--------------------------------------------------------------------------
 | Register Middleware
@@ -86,7 +87,7 @@ $app->middleware([
  ]);
 
 $app->routeMiddleware([
-    'auth' => App\Http\Middleware\Authenticate::class,
+    'isCustomer' => App\Http\Middleware\IsCustomerMiddleware::class,
 ]);
 
 // $app->middleware([
@@ -99,9 +100,6 @@ $app->routeMiddleware([
 
 $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 $app->register(Illuminate\Session\SessionServiceProvider::class);
-
-// $app->register(App\Providers\AuthServiceProvider::class);
-$app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -128,9 +126,6 @@ $app->alias('mail.manager', Illuminate\Contracts\Mail\Factory::class);
 $app->alias('mailer', Illuminate\Mail\Mailer::class);
 $app->alias('mailer', Illuminate\Contracts\Mail\Mailer::class);
 $app->alias('mailer', Illuminate\Contracts\Mail\MailQueue::class);
-
-$app->configure('auth');
-$app->configure('jwt');
 
 /*
 |--------------------------------------------------------------------------

@@ -10,9 +10,7 @@
         "illuminate/mail": "^9.45",
         "illuminate/session": "^9.52",
         "laravel/lumen-framework": "^9.0",
-        "laravel/sanctum": "^3.2",
-        "nesbot/carbon": "^2.67",
-        "tymon/jwt-auth": "*"
+        "nesbot/carbon": "^2.67"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

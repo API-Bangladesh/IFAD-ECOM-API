@@ -147,7 +147,7 @@ Route::get('/inventories/search', function (Request $request) {
         $keyword = $request->keyword;
 
         $query = Inventory::query();
-        $query->groupBy('product_id');
+        /*$query->groupBy('product_id');*/
         $query->with(['product', 'inventoryVariants', 'inventoryImages']);
 
         $query->when($keyword, function ($query) use ($keyword) {

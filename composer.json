@@ -11,7 +11,8 @@
         "illuminate/session": "^9.52",
         "laravel/lumen-framework": "^9.0",
         "laravel/sanctum": "^3.2",
-        "nesbot/carbon": "^2.67"
+        "nesbot/carbon": "^2.67",
+        "tymon/jwt-auth": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

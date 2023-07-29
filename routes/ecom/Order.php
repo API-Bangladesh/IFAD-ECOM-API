@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Validator;
 |
 */
 
-Route::group(['middleware' => 'isCustomer'], function () {
+Route::group(['middleware' => 'auth'], function () {
     Route::get('/orders', function (Request $request) {
         try {
             $query = Order::query();

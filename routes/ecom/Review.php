@@ -105,7 +105,7 @@ Route::get('/reviews/inventories/{inventoryId}', function (Request $request, $in
         }
     });
 
-Route::group(['middleware' => 'isCustomer'], function () {
+Route::group(['middleware' => 'auth'], function () {
     /**
      *
      */

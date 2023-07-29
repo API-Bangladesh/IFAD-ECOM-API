@@ -2,11 +2,13 @@
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,7 +56,7 @@ Route::post('/register', function (Request $request) {
 Route::post('/login', function (Request $request) {
     try {
         $validator = Validator::make($request->all(), [
-            'email' => ['required'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
@@ -62,19 +64,23 @@ Route::post('/login', function (Request $request) {
             return make_validation_error_response($validator->getMessageBag());
         }
 
-        $customer = Customer::where('email', $request->email)->first();
-        if (empty($customer)) throw new Exception("Customer not found.");
+        /*$customer = Customer::where('email', $request->email)->first();
+        if (empty($customer)) throw new Exception("Customer not found.");*/
 
-        if (Hash::check($request->password, $customer->password)) {
-            $customer->api_token = Str::random(60);
-            $customer->update();
+        $credentials = $request->only(['email', 'password']);
+
+        return (string)JWTAuth::attempt($credentials);
+
+        return $token = Auth::attempt($credentials);
+
+        if (! $token = Auth::attempt($credentials)) {
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        Session::put('customer', $customer);
-
         return make_success_response("Login successfully.", [
-            'customer' => $customer,
-            'token' => $customer->api_token
+            'token' => $token,
+            'token_type' => 'bearer',
+            'customer' => auth()->user()
         ]);
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
@@ -89,11 +95,7 @@ Route::post('/logout', function (Request $request) {
             throw new Exception("Authorization token not found.");
         }
 
-        $customer = Customer::where('api_token', $authorization)->first();
-        if (empty($customer)) throw new Exception("Customer not found.");
-
-        $customer->api_token = Null;
-        $customer->update();
+        auth()->logout();
 
         return make_success_response("Logout successful.");
     } catch (Exception $exception) {
@@ -102,7 +104,7 @@ Route::post('/logout', function (Request $request) {
 });
 
 
-Route::group(['middleware' => 'isCustomer'], function () {
+Route::group(['middleware' => 'auth'], function () {
     Route::put('/change-password', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [

@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Validator;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::group(['middleware' => 'isCustomer'], function () {
+Route::group(['middleware' => 'auth'], function () {
 
     /**
      *

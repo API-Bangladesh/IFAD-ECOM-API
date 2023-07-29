@@ -13,6 +13,8 @@
 |
 */
 //product Category List
+use Illuminate\Support\Facades\Session;
+
 $router->get('/categories', 'ProductController@allCategory');
 //product Category id wies subcategory List /{1}
 $router->get('/categories/{id}', 'ProductController@allSubCategory');

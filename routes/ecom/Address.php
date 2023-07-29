@@ -16,7 +16,7 @@ use Illuminate\Validation\Rule;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::group(['middleware' => 'isCustomer'], function () {
+Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/addresses', function (Request $request) {
         try {
             return Address::with(['division', 'district', 'upazila'])

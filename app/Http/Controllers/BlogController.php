@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Common\ExtendController;
 use Illuminate\Http\Request;
 use App\Models\Blog;
 use App\Http\Resources\BlogResource;
 use DB;
+
 class BlogController extends Controller
 {
+    use ExtendController;
+
     public function allBlog(){
         $blog = Blog::where('status','=',1)->orderBy(DB::raw('ISNULL(blog_order), blog_order'), 'ASC')->get();
         return BlogResource::collection($blog);
@@ -17,8 +21,6 @@ class BlogController extends Controller
         try {
             $blogs = Blog::where('id','=',$id)->get();
             return BlogResource::collection($blogs);
-
-
         } catch (Exception $exception) {
             report($exception);
 

@@ -5,6 +5,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\ContentItem;
 use DB;
+
+/**
+ * @method static where($key, $value)
+ */
 class ContentModule extends Model
 {
     use HasFactory;

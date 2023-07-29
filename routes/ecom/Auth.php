@@ -20,9 +20,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 |
 */
 
-/**
- *
- */
+
 Route::post('/register', function (Request $request) {
     try {
         $validator = Validator::make($request->all(), [
@@ -100,7 +98,7 @@ Route::post('/logout', function (Request $request) {
 });
 
 
-Route::group(['middleware' => 'auth'], function () {
+Route::group(['middleware' => 'isCustomer'], function () {
     Route::put('/change-password', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [

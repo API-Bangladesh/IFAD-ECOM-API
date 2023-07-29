@@ -18,33 +18,25 @@ use Illuminate\Support\Facades\Validator;
 |
 */
 
+Route::get('/reviews', function (Request $request) {
+    try {
+        $query = Review::query();
+        $query->with('customer', 'inventory', 'combo');
 
+        $query->when($request->limit, function ($q) use ($request) {
+            $q->limit($request->limit);
+        });
 
-    /**
-     *
-     */
-    Route::get('/reviews', function (Request $request) {
-        try {
-            $query = Review::query();
-            $query->with('customer', 'inventory', 'combo');
-
-            $query->when($request->limit, function ($q) use ($request) {
-                $q->limit($request->limit);
-            });
-
-            if ($request->paginate === 'yes') {
-                return $query->paginate($request->get('limit', 15));
-            } else {
-                return $query->get();
-            }
-        } catch (Exception $exception) {
-            return make_error_response($exception->getMessage());
+        if ($request->paginate === 'yes') {
+            return $query->paginate($request->get('limit', 15));
+        } else {
+            return $query->get();
         }
-    });
+    } catch (Exception $exception) {
+        return make_error_response($exception->getMessage());
+    }
+});
 
-/**
- *
- */
 Route::get('/reviews/inventories/{inventoryId}', function (Request $request, $inventoryId) {
     try {
         $query = Review::query();
@@ -65,50 +57,47 @@ Route::get('/reviews/inventories/{inventoryId}', function (Request $request, $in
     }
 });
 
-    Route::get('inventories/{inventoryId}/reviews/ability', function ($inventoryId) {
-        try {
-            $exists = Order::where('customer_id', auth_customer('id'))->whereHas('orderItems', function ($query) use ($inventoryId) {
-                $query->where('inventory_id', $inventoryId);
-            })->exists();
+Route::get('inventories/{inventoryId}/reviews/ability', function ($inventoryId) {
+    try {
+        $exists = Order::where('customer_id', auth_customer('id'))->whereHas('orderItems', function ($query) use ($inventoryId) {
+            $query->where('inventory_id', $inventoryId);
+        })->exists();
 
-            if ($exists) {
-                return response()->json([
-                    "capability" => false
-                ]);
-            }
-
-            return response()->json([
-                "capability" => true
-            ]);
-        } catch (Exception $exception) {
-            return make_error_response($exception->getMessage());
-        }
-    });
-
-    Route::get('combos/{comboId}/reviews/ability', function ($comboId) {
-        try {
-            $exists = Order::where('customer_id', auth_customer('id'))->whereHas('orderItems', function ($query) use ($comboId) {
-                $query->where('combo_id', $comboId);
-            })->exists();
-
-            if ($exists) {
-                return response()->json([
-                    "capability" => true
-                ]);
-            }
-
+        if ($exists) {
             return response()->json([
                 "capability" => false
             ]);
-        } catch (Exception $exception) {
-            return make_error_response($exception->getMessage());
         }
-    });
 
-Route::group(['middleware' => 'auth'], function () {
-    /**
-     *
-     */
+        return response()->json([
+            "capability" => true
+        ]);
+    } catch (Exception $exception) {
+        return make_error_response($exception->getMessage());
+    }
+});
+
+Route::get('combos/{comboId}/reviews/ability', function ($comboId) {
+    try {
+        $exists = Order::where('customer_id', auth_customer('id'))->whereHas('orderItems', function ($query) use ($comboId) {
+            $query->where('combo_id', $comboId);
+        })->exists();
+
+        if ($exists) {
+            return response()->json([
+                "capability" => true
+            ]);
+        }
+
+        return response()->json([
+            "capability" => false
+        ]);
+    } catch (Exception $exception) {
+        return make_error_response($exception->getMessage());
+    }
+});
+
+Route::group(['middleware' => 'isCustomer'], function () {
     Route::post('/reviews', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [
@@ -147,9 +136,6 @@ Route::group(['middleware' => 'auth'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::get('/reviews/{id}/show', function ($id) {
         try {
             return Review::with('customer', 'inventory', 'combo')->findOrFail($id);
@@ -158,9 +144,6 @@ Route::group(['middleware' => 'auth'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::delete('/reviews/{id}', function ($id) {
         try {
             $reviews = Review::findOrFail($id);

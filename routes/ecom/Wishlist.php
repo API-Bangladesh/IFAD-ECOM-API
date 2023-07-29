@@ -17,11 +17,8 @@ use Illuminate\Support\Facades\Validator;
 |
 */
 
-Route::group(['middleware' => 'auth'], function () {
+Route::group(['middleware' => 'isCustomer'], function () {
 
-    /**
-     *
-     */
     Route::get('/wishlist', function (Request $request) {
         try {
             $query = Wishlist::query();
@@ -33,9 +30,6 @@ Route::group(['middleware' => 'auth'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::get('/wishlist/{id}/show', function ($id) {
         try {
             return Wishlist::with('customer', 'inventory', 'combo')->findOrFail($id);
@@ -44,9 +38,6 @@ Route::group(['middleware' => 'auth'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::post('/wishlist/sync', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [
@@ -88,9 +79,6 @@ Route::group(['middleware' => 'auth'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::get('/wishlist/inventories/{inventoryId}/status', function (Request $request, $inventoryId) {
         try {
             $wishlist = Wishlist::where('customer_id', auth_customer('id'))
@@ -110,9 +98,6 @@ Route::group(['middleware' => 'auth'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::delete('/wishlist/{id}', function ($id) {
         try {
             $wishlist = Wishlist::findOrFail($id);

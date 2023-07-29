@@ -15,9 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/**
- *
- */
+
 Route::get('/combo-categories', function (Request $request) {
     try {
         $query = ComboCategory::query();
@@ -36,9 +34,7 @@ Route::get('/combo-categories', function (Request $request) {
     }
 });
 
-/**
- *
- */
+
 Route::get('/combo-categories/{id}/show', function (Request $request, $id) {
     try {
         return ComboCategory::findOrFail($id);

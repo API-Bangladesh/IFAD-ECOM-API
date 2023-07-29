@@ -16,11 +16,8 @@ use Illuminate\Support\Facades\Validator;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::group(['middleware' => 'auth'], function () {
 
-    /**
-     *
-     */
+Route::group(['middleware' => 'isCustomer'], function () {
     Route::get('/customers', function (Request $request) {
         try {
             $query = Customer::query();
@@ -30,9 +27,6 @@ Route::group(['middleware' => 'auth'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::get('/customers/{id}/show', function ($id) {
         try {
             return Customer::findOrFail($id);
@@ -41,9 +35,6 @@ Route::group(['middleware' => 'auth'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::put('/customers', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [
@@ -72,9 +63,6 @@ Route::group(['middleware' => 'auth'], function () {
         }
     });
 
-    /**
-     *
-     */
     Route::get('/customers/addresses', function () {
         try {
             return Address::where('customer_id', auth_customer('id'))->paginate();

@@ -15,9 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/**
- *
- */
+
 Route::get('/sub-categories', function (Request $request) {
     try {
         $query = SubCategory::query();
@@ -36,9 +34,7 @@ Route::get('/sub-categories', function (Request $request) {
     }
 });
 
-/**
- *
- */
+
 Route::get('/sub-categories/{id}/show', function (Request $request, $id) {
     try {
         return SubCategory::findOrFail($id);

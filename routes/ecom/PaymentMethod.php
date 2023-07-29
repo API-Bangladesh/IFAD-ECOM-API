@@ -15,9 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/**
- *
- */
+
 Route::get('/payment-methods', function (Request $request) {
     try {
         return PaymentMethod::where('status', PaymentMethod::STATUS_ACTIVE)->get();
@@ -26,9 +24,7 @@ Route::get('/payment-methods', function (Request $request) {
     }
 });
 
-/**
- *
- */
+
 Route::get('/payment-methods/{id}/show', function ($id) {
     try {
         return PaymentMethod::findOrFail($id);

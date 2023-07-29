@@ -17,9 +17,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/**
- *
- */
+
 Route::get('/inventories', function (Request $request) {
     try {
         $query = Inventory::query();
@@ -44,9 +42,7 @@ Route::get('/inventories', function (Request $request) {
     }
 });
 
-/**
- *
- */
+
 Route::get('/inventories/discounted', function (Request $request) {
     try {
         $query = Inventory::query();
@@ -73,9 +69,7 @@ Route::get('/inventories/discounted', function (Request $request) {
     }
 });
 
-/**
- *
- */
+
 Route::get('/inventories/categories/{categoryId}', function (Request $request, $categoryId) {
     try {
         $query = Inventory::query();
@@ -103,9 +97,7 @@ Route::get('/inventories/categories/{categoryId}', function (Request $request, $
     }
 });
 
-/**
- *
- */
+
 Route::get('/inventories/subCategories/{subCategoryId}', function (Request $request, $subCategoryId) {
     try {
         $query = Inventory::query();
@@ -125,9 +117,7 @@ Route::get('/inventories/subCategories/{subCategoryId}', function (Request $requ
     }
 });
 
-/**
- *
- */
+
 Route::get('/inventories/{id}/show', function ($id) {
     try {
 
@@ -139,9 +129,7 @@ Route::get('/inventories/{id}/show', function ($id) {
     }
 });
 
-/**
- *
- */
+
 Route::get('/inventories/search', function (Request $request) {
     try {
         $keyword = $request->keyword;
@@ -167,9 +155,7 @@ Route::get('/inventories/search', function (Request $request) {
 });
 
 
-/**
- *
- */
+
 Route::post('/inventories/{inventoryId}/inventory-variants', function (Request $request, $inventoryId) {
     try {
 
@@ -190,9 +176,7 @@ Route::post('/inventories/{inventoryId}/inventory-variants', function (Request $
     }
 });
 
-/**
- *
- */
+
 Route::get('/inventories/products/{productId}/variations/options', function ($productId) {
     try {
         $inventoryIds = Inventory::where('product_id', $productId)->get()->pluck('id');

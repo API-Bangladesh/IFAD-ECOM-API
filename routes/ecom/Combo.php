@@ -15,9 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/**
- *
- */
+
 Route::get('/combos', function (Request $request) {
     try {
         $query = Combo::query();
@@ -41,9 +39,7 @@ Route::get('/combos', function (Request $request) {
     }
 });
 
-/**
- *
- */
+
 Route::get('/combos/{id}/show', function ($id) {
     try {
         return Combo::with(['comboCategory', 'comboItems', 'comboImages', 'reviews'])->findOrFail($id);
@@ -52,9 +48,7 @@ Route::get('/combos/{id}/show', function ($id) {
     }
 });
 
-/**
- *
- */
+
 Route::get('/combos/combo-categories/{comboCategoryId}', function (Request $request, $comboCategoryId) {
     try {
         $query = Combo::query();
@@ -71,9 +65,7 @@ Route::get('/combos/combo-categories/{comboCategoryId}', function (Request $requ
     }
 });
 
-/**
- *
- */
+
 Route::get('/combos/search', function (Request $request) {
     try {
         $keyword = $request->keyword;

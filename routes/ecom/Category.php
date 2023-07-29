@@ -15,9 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/**
- *
- */
+
 Route::get('/categories', function (Request $request) {
     try {
         $query = Category::query();
@@ -36,9 +34,7 @@ Route::get('/categories', function (Request $request) {
     }
 });
 
-/**
- *
- */
+
 Route::get('/categories/{id}/show', function (Request $request, $id) {
     try {
         return Category::findOrFail($id);

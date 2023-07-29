@@ -66,23 +66,17 @@ Route::post('/login', function (Request $request) {
             return make_validation_error_response($validator->getMessageBag());
         }
 
-        /*$customer = Customer::where('email', $request->email)->first();
-        if (empty($customer)) throw new Exception("Customer not found.");*/
+        $customer = Customer::where('email', $request->email)->first();
+        if (empty($customer)) throw new Exception("Customer not found.");
 
-        $credentials = $request->only(['email', 'password']);
-
-        return (string)JWTAuth::attempt($credentials);
-
-        return $token = Auth::attempt($credentials);
-
-        if (! $token = Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+        if (Hash::check($request->password, $customer->password)) {
+            $customer->api_token = Str::random(60);
+            $customer->update();
         }
 
         return make_success_response("Login successfully.", [
-            'token' => $token,
-            'token_type' => 'bearer',
-            'customer' => auth()->user()
+            'customer' => $customer,
+            'token' => $customer->api_token
         ]);
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());

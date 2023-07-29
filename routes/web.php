@@ -12,10 +12,11 @@
 | and give it the Closure to call when that URI is requested.
 |
 */
+
 //product Category List
 use Illuminate\Support\Facades\Session;
 
-$router->get('/', function (){
+$router->get('/', function () {
     return 'API Server';
 });
 
@@ -85,7 +86,7 @@ $router->get('/search/{name}', 'SearchController@Search');
 
 /*Ecom*/
 $router->group(['prefix' => 'ecom'], function () use ($router) {
-    $router->get('/', function (){
+    $router->get('/', function () {
         return 'IFAD Ecom Ready';
     });
 

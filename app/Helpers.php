@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Order;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 
 /**
@@ -166,5 +168,22 @@ function make_validation_error_response($errors = [], $message = 'The given data
  */
 function auth_customer($key)
 {
-    return optional(Session::get('customer'))[$key];
+    $customer = null;
+    $token = request()->header('authorization');
+
+    if ($token) {
+        list($id) = explode('|', $token);
+        $customer = Cache::get('customer_' . $id);
+    }
+
+    return optional($customer)->$key;
+}
+
+/**
+ * @param null $timezone
+ * @return Carbon
+ */
+function now($timezone = null)
+{
+    return Carbon::now($timezone);
 }

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Validator;
 */
 
 Route::group(['middleware' => 'isCustomer'], function () {
+
     Route::get('/customers', function (Request $request) {
         try {
             $query = Customer::query();

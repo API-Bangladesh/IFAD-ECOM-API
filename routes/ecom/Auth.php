@@ -3,6 +3,7 @@
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -41,8 +42,10 @@ Route::post('/register', function (Request $request) {
         $customer->password = Hash::make($request->password);
         $customer->save();
 
-        $customer->api_token = Str::random(60);
+        $customer->api_token = $customer->id . '|' . Str::random(60);
         $customer->update();
+
+        Cache::put('customer_' . $customer->id, $customer, now()->addMinutes(60));
 
         return make_success_response("Register successfully.", [
             'customer' => $customer,
@@ -68,9 +71,11 @@ Route::post('/login', function (Request $request) {
         if (empty($customer)) throw new Exception("Customer not found.");
 
         if (Hash::check($request->password, $customer->password)) {
-            $customer->api_token = Str::random(60);
+            $customer->api_token = $customer->id . '|' . Str::random(60);
             $customer->update();
         }
+
+        Cache::put('customer_' . $customer->id, $customer, now()->addMinutes(60));
 
         return make_success_response("Login successfully.", [
             'customer' => $customer,
@@ -83,20 +88,22 @@ Route::post('/login', function (Request $request) {
 
 Route::post('/logout', function (Request $request) {
     try {
-        $authorization = $request->header('authorization');
+        $token = $request->header('authorization');
 
-        if (empty($authorization)) {
-            throw new Exception("Authorization token not found.");
+        if (!$token) {
+            throw new Exception("Token not found!");
         }
 
-        auth()->logout();
+        if ($token) {
+            list($id) = explode('|', $token);
+            Cache::forget('customer_' . $id);
+        }
 
         return make_success_response("Logout successful.");
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }
 });
-
 
 Route::group(['middleware' => 'isCustomer'], function () {
     Route::put('/change-password', function (Request $request) {

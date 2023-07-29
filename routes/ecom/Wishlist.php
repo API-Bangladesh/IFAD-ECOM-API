@@ -22,6 +22,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
     Route::get('/wishlist', function (Request $request) {
         try {
             $query = Wishlist::query();
+            $query->where('customer_id', auth_customer('id'));
             $query->with('customer', 'inventory', 'combo');
 
             return $query->paginate($request->get('limit', 15));

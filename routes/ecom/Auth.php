@@ -42,10 +42,10 @@ Route::post('/register', function (Request $request) {
         $customer->password = Hash::make($request->password);
         $customer->save();
 
-        $customer->api_token = $customer->id . '|' . Str::random(60);
+        $customer->api_token = $customer->id . '|' . Str::random(32);
         $customer->update();
 
-        Cache::put('customer_' . $customer->id, $customer, now()->addMinutes(60));
+        Cache::put('customer_' . $customer->id, $customer->toArray(), now()->addDays(7));
 
         return make_success_response("Register successfully.", [
             'customer' => $customer,
@@ -71,11 +71,11 @@ Route::post('/login', function (Request $request) {
         if (empty($customer)) throw new Exception("Customer not found.");
 
         if (Hash::check($request->password, $customer->password)) {
-            $customer->api_token = $customer->id . '|' . Str::random(60);
+            $customer->api_token = $customer->id . '|' . Str::random(32);
             $customer->update();
         }
 
-        Cache::put('customer_' . $customer->id, $customer, now()->addMinutes(60));
+        Cache::put('customer_' . $customer->id, $customer->toArray(), now()->addDays(7));
 
         return make_success_response("Login successfully.", [
             'customer' => $customer,

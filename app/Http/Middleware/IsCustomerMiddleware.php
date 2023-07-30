@@ -29,7 +29,7 @@ class IsCustomerMiddleware
         if (Cache::has('customer_' . $customer->id)) {
             return $next($request);
         } else {
-            Cache::put('customer_' . $customer->id, $customer, now()->addMinutes(60));
+            Cache::put('customer_' . $customer->id, $customer->toArray(), now()->addDays(7));
         }
 
         return $next($request);

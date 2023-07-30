@@ -23,8 +23,8 @@ Route::get('/reviews', function (Request $request) {
         $query = Review::query();
         $query->with('customer', 'inventory', 'combo');
 
-        $query->when($request->limit, function ($q) use ($request) {
-            $q->limit($request->limit);
+        $query->when($request->limit, function ($query) use ($request) {
+            $query->limit($request->limit);
         });
 
         if ($request->paginate === 'yes') {
@@ -43,8 +43,8 @@ Route::get('/reviews/inventories/{inventoryId}', function (Request $request, $in
         $query->with('customer', 'inventory', 'combo');
         $query->where('inventory_id', $inventoryId);
 
-        $query->when($request->limit, function ($q) use ($request) {
-            $q->limit($request->limit);
+        $query->when($request->limit, function ($query) use ($request) {
+            $query->limit($request->limit);
         });
 
         if ($request->paginate === 'yes') {
@@ -59,18 +59,19 @@ Route::get('/reviews/inventories/{inventoryId}', function (Request $request, $in
 
 Route::get('inventories/{inventoryId}/reviews/ability', function ($inventoryId) {
     try {
-        $exists = Order::where('customer_id', auth_customer('id'))->whereHas('orderItems', function ($query) use ($inventoryId) {
-            $query->where('inventory_id', $inventoryId);
-        })->exists();
+        $exists = Order::where('customer_id', auth_customer('id'))
+            ->whereHas('orderItems', function ($query) use ($inventoryId) {
+                $query->where('inventory_id', $inventoryId);
+            })->exists();
 
         if ($exists) {
             return response()->json([
-                "capability" => false
+                "capability" => true
             ]);
         }
 
         return response()->json([
-            "capability" => true
+            "capability" => false
         ]);
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
@@ -102,7 +103,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
         try {
             $validator = Validator::make($request->all(), [
                 'ratting_number' => ['required'],
-                'comments' => ['required'],
+                // 'comments' => ['required'],
                 'inventory_id' => ['nullable', 'numeric'],
                 'combo_id' => ['nullable', 'numeric'],
             ]);

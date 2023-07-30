@@ -22,7 +22,7 @@ Route::get('/inventories', function (Request $request) {
     try {
         $query = Inventory::query();
         $query->with(['product', 'inventoryVariants', 'inventoryImages']);
-        $query->groupBy('product_id');
+        // $query->groupBy('product_id');
 
         $query->when($request->order_column && $request->order_by, function ($q) use ($request) {
             $q->orderBy($request->order_column, $request->order_by);
@@ -47,9 +47,10 @@ Route::get('/inventories/discounted', function (Request $request) {
     try {
         $query = Inventory::query();
         $query->with(['product', 'inventoryVariants', 'inventoryImages']);
+        // $query->groupBy('product_id');
+
         $query->whereDate('offer_start', '<=', date('Y-m-d'));
         $query->whereDate('offer_end', '>=', date('Y-m-d'));
-        $query->groupBy('product_id');
 
         $query->when($request->order_column && $request->order_by, function ($q) use ($request) {
             $q->orderBy($request->order_column, $request->order_by);
@@ -74,10 +75,11 @@ Route::get('/inventories/categories/{categoryId}', function (Request $request, $
     try {
         $query = Inventory::query();
         $query->with(['product', 'inventoryVariants', 'inventoryImages']);
+        // $query->groupBy('product_id');
+
         $query->whereHas('product', function ($query) use ($categoryId) {
             $query->where('category_id', $categoryId);
         });
-        $query->groupBy('product_id');
 
         $query->when($request->order_column && $request->order_by, function ($q) use ($request) {
             $q->orderBy($request->order_column, $request->order_by);
@@ -102,10 +104,11 @@ Route::get('/inventories/subCategories/{subCategoryId}', function (Request $requ
     try {
         $query = Inventory::query();
         $query->with(['product', 'inventoryVariants', 'inventoryImages']);
+        // $query->groupBy('product_id');
+
         $query->whereHas('product', function ($query) use ($subCategoryId) {
             $query->where('sub_category_id', $subCategoryId);
         });
-        $query->groupBy('product_id');
 
         if ($request->paginate === 'yes') {
             return $query->paginate($request->get('limit', 15));
@@ -135,8 +138,8 @@ Route::get('/inventories/search', function (Request $request) {
         $keyword = $request->keyword;
 
         $query = Inventory::query();
-        /*$query->groupBy('product_id');*/
         $query->with(['product', 'inventoryVariants', 'inventoryImages']);
+        // $query->groupBy('product_id');
 
         $query->when($keyword, function ($query) use ($keyword) {
             $query->whereHas('product', function ($query) use ($keyword) {
@@ -153,7 +156,6 @@ Route::get('/inventories/search', function (Request $request) {
         return make_error_response($exception->getMessage());
     }
 });
-
 
 
 Route::post('/inventories/{inventoryId}/inventory-variants', function (Request $request, $inventoryId) {
@@ -181,7 +183,9 @@ Route::get('/inventories/products/{productId}/variations/options', function ($pr
     try {
         $inventoryIds = Inventory::where('product_id', $productId)->get()->pluck('id');
 
-        $inventoryVariants = InventoryVariant::with('variant', 'variantOption')->whereIn('inventory_id', $inventoryIds)->get();
+        $inventoryVariants = InventoryVariant::with('variant', 'variantOption')
+            ->whereIn('inventory_id', $inventoryIds)
+            ->get();
 
         $variantOptions = [];
         foreach ($inventoryVariants as $inventoryVariant) {

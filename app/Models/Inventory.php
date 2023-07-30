@@ -22,7 +22,7 @@ class Inventory extends Model
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id', 'id')
-            ->with('category', 'subCategory', 'variant', 'variantOption', 'segment', 'pack');
+            ->with('category', 'subCategory', 'variant', 'variantOption', 'segment', 'pack', 'productImages');
     }
 
     /**

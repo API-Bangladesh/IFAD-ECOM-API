@@ -64,6 +64,16 @@ Route::get('inventories/{inventoryId}/reviews/ability', function ($inventoryId) 
                 $query->where('inventory_id', $inventoryId);
             })->exists();
 
+        $exists2 = Review::where('customer_id', auth_customer('id'))
+            ->where('inventory_id', $inventoryId)
+            ->exists();
+
+        if ($exists2) {
+            return response()->json([
+                "capability" => false
+            ]);
+        }
+
         if ($exists) {
             return response()->json([
                 "capability" => true

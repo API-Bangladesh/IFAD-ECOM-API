@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/categories', function (Request $request) {
     try {
         $query = Category::query();
+        $query->where('status', Category::STATUS_ACTIVE);
 
         $query->when($request->limit, function ($q) use ($request) {
             $q->limit($request->limit);

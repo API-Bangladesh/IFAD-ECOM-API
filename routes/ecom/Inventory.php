@@ -47,6 +47,7 @@ Route::get('/inventories/discounted', function (Request $request) {
     try {
         $query = Inventory::query();
         $query->with(['product', 'inventoryVariants', 'inventoryImages']);
+        $query->where('status', Inventory::STATUS_ACTIVE);
         // $query->groupBy('product_id');
 
         $query->whereDate('offer_start', '<=', date('Y-m-d'));
@@ -75,6 +76,7 @@ Route::get('/inventories/categories/{categoryId}', function (Request $request, $
     try {
         $query = Inventory::query();
         $query->with(['product', 'inventoryVariants', 'inventoryImages']);
+        $query->where('status', Inventory::STATUS_ACTIVE);
         // $query->groupBy('product_id');
 
         $query->whereHas('product', function ($query) use ($categoryId) {
@@ -104,6 +106,7 @@ Route::get('/inventories/subCategories/{subCategoryId}', function (Request $requ
     try {
         $query = Inventory::query();
         $query->with(['product', 'inventoryVariants', 'inventoryImages']);
+        $query->where('status', Inventory::STATUS_ACTIVE);
         // $query->groupBy('product_id');
 
         $query->whereHas('product', function ($query) use ($subCategoryId) {
@@ -124,7 +127,9 @@ Route::get('/inventories/subCategories/{subCategoryId}', function (Request $requ
 Route::get('/inventories/{id}/show', function ($id) {
     try {
 
-        $inventory = Inventory::with(['product', 'inventoryVariants', 'inventoryImages'])->findOrFail($id);
+        $inventory = Inventory::with(['product', 'inventoryVariants', 'inventoryImages'])
+            ->where('status', Inventory::STATUS_ACTIVE)
+            ->findOrFail($id);
 
         return new InventoryResource($inventory);
     } catch (Exception $exception) {
@@ -139,6 +144,7 @@ Route::get('/inventories/search', function (Request $request) {
 
         $query = Inventory::query();
         $query->with(['product', 'inventoryVariants', 'inventoryImages']);
+        $query->where('status', Inventory::STATUS_ACTIVE);
         // $query->groupBy('product_id');
 
         $query->when($keyword, function ($query) use ($keyword) {

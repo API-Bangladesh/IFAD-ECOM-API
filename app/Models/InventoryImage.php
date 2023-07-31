@@ -9,6 +9,12 @@ class InventoryImage extends Model
 {
     use HasFactory;
 
+    const STATUS_ACTIVE = 1;
+    const STATUS_INACTIVE = 2;
+
+    /**
+     * @var array
+     */
     protected $fillable = [];
 
     /**

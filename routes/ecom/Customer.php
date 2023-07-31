@@ -44,10 +44,16 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 'date_of_birth' => ['nullable'],
                 'gender' => ['nullable'],
                 'phone_number' => ['required'],
+                'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'size:2048'],
             ]);
 
             if ($validator->fails()) {
                 return make_validation_error_response($validator->getMessageBag());
+            }
+
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('public/profile_images');
+                $filename = basename($imagePath);
             }
 
             $customer = Customer::findOrFail(auth_customer('id'));
@@ -55,6 +61,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $customer->address = $request->address;
             $customer->date_of_birth = $request->date_of_birth;
             $customer->gender = $request->gender;
+            $customer->phone_number = $request->phone_number;
             $customer->phone_number = $request->phone_number;
             $customer->save();
 

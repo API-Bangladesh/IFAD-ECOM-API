@@ -81,7 +81,6 @@ Route::group(['middleware' => 'isCustomer'], function () {
 
             $total = 0;
             foreach ($request->cart as $item) {
-                if (empty($item['inventory_id'])) continue;
                 $total += $item['quantity'] * $item['unit_price'];
 
                 $orderItem = new OrderItem();

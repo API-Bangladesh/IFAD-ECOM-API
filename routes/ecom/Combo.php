@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/combos', function (Request $request) {
     try {
         $query = Combo::query();
+        $query->where('status', Combo::STATUS_ACTIVE);
         $query->with('comboCategory', 'comboItems', 'comboImages');
 
         $query->when($request->order_column && $request->order_by, function ($q) use ($request) {
@@ -42,7 +43,9 @@ Route::get('/combos', function (Request $request) {
 
 Route::get('/combos/{id}/show', function ($id) {
     try {
-        return Combo::with(['comboCategory', 'comboItems', 'comboImages', 'reviews'])->findOrFail($id);
+        return Combo::with(['comboCategory', 'comboItems', 'comboImages', 'reviews'])
+            ->where('status', Combo::STATUS_ACTIVE)
+            ->findOrFail($id);
     } catch (Exception $exception) {
         return make_error_response($exception->getMessage());
     }
@@ -54,6 +57,7 @@ Route::get('/combos/combo-categories/{comboCategoryId}', function (Request $requ
         $query = Combo::query();
         $query->with(['comboCategory', 'comboItems', 'comboImages']);
         $query->where('combo_category_id', $comboCategoryId);
+        $query->where('status', Combo::STATUS_ACTIVE);
 
         if ($request->paginate === 'yes') {
             return $query->paginate($request->get('limit', 15));
@@ -73,6 +77,7 @@ Route::get('/combos/search', function (Request $request) {
         $query = Combo::query();
         $query->with(['comboCategory', 'comboItems', 'comboImages']);
         $query->where('title', 'LIKE', "%" . $keyword . "%");
+        $query->where('status', Combo::STATUS_ACTIVE);
 
         return $query->paginate();
     } catch (Exception $exception) {

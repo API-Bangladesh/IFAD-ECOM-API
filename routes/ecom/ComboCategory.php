@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/combo-categories', function (Request $request) {
     try {
         $query = ComboCategory::query();
+        $query->where('status', ComboCategory::STATUS_ACTIVE);
 
         $query->when($request->limit, function ($q) use ($request) {
             $q->limit($request->limit);

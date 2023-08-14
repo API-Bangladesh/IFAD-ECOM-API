@@ -62,8 +62,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $customer->date_of_birth = $request->date_of_birth;
             $customer->gender = $request->gender;
             $customer->phone_number = $request->phone_number;
-            $customer->phone_number = $request->phone_number;
-            $customer->save();
+            $customer->update();
 
             return make_success_response("Record saved successfully.", $customer);
         } catch (Exception $exception) {

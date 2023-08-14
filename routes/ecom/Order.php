@@ -4,6 +4,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 
@@ -103,6 +104,63 @@ Route::group(['middleware' => 'isCustomer'], function () {
         }
     });
 
+    Route::put('/orders/{id}/change-status', function (Request $request, $id) {
+        try {
+            $validator = Validator::make($request->all(), [
+                'payment_status_id' => ['required'],
+                'order_status_id' => ['required'],
+            ]);
+
+            if ($validator->fails()) {
+                return make_validation_error_response($validator->getMessageBag());
+            }
+
+            app('db')->transaction(function () use ($id, $request) {
+                $order = Order::findOrFail($id);
+                $order->payment_status_id = $request->payment_status_id;
+                $order->order_status_id = $request->order_status_id;
+                $order->update();
+
+                if ($request->payment_status_id == Order::PAYMENT_STATUS_PAID) {
+                    $order->orderItems->map(function ($item) {
+                        if ($item->type === 'product') {
+                            $inventory = $item->inventory;
+                            if ($inventory->is_manage_stock) {
+                                $inventory->stock_quantity = $inventory->stock_quantity - $item->quantity;
+                                $inventory->update();
+                            }
+                        }
+                        if ($item->type === 'combo') {
+                            $combo = $item->combo;
+                            if ($combo->is_manage_stock) {
+                                $combo->stock_quantity = $combo->stock_quantity - $item->quantity;
+                                $combo->update();
+                            }
+                        }
+                    });
+                }
+
+                $data = [
+                    'name' => optional($order->customer)->name,
+                    'email' => optional($order->customer)->email,
+                    'subject' => "IFAD eShop: Order Status Changed",
+                ];
+                Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+                    'payment_status_name' => get_payment_status_name($request->payment_status_id),
+                    'order_status_name' => get_order_status_name($request->payment_status_id)
+                ], function ($message) use ($data) {
+                    $message->to($data["email"]);
+                    $message->from(config('mail.from.address'), config('mail.from.name'));
+                    $message->subject($data["subject"]);
+                });
+            });
+
+            return make_success_response("Record saved successfully.");
+        } catch (Exception $exception) {
+            return make_error_response($exception->getMessage());
+        }
+    });
+
     Route::post('/orders/make-payment', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [
@@ -175,7 +233,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $post_data['store_passwd'] = $storePassword;
             $post_data['total_amount'] = $request->grand_total;
             $post_data['currency'] = "BDT";
-            $post_data['tran_id'] = "ifadshop".uniqid();
+            $post_data['tran_id'] = "ifadshop" . uniqid();
             $post_data['success_url'] = $completion . "?status=success";
             $post_data['fail_url'] = $completion . "?status=fail";
             $post_data['cancel_url'] = $completion . "?status=cancel";
@@ -231,10 +289,10 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $direct_api_url = $storeApiUrl;
 
             $handle = curl_init();
-            curl_setopt($handle, CURLOPT_URL, $direct_api_url );
+            curl_setopt($handle, CURLOPT_URL, $direct_api_url);
             curl_setopt($handle, CURLOPT_TIMEOUT, 30);
             curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 30);
-            curl_setopt($handle, CURLOPT_POST, 1 );
+            curl_setopt($handle, CURLOPT_POST, 1);
             curl_setopt($handle, CURLOPT_POSTFIELDS, $post_data);
             curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, FALSE); # KEEP IT FALSE IF YOU RUN FROM LOCAL PC
@@ -243,7 +301,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
 
             $code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
 
-            if($code == 200 && !( curl_errno($handle))) {
+            if ($code == 200 && !(curl_errno($handle))) {
                 curl_close($handle);
                 $sslcommerzResponse = $content;
             } else {
@@ -253,7 +311,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
             }
 
             # PARSE THE JSON RESPONSE
-            $sslcz = json_decode($sslcommerzResponse, true );
+            $sslcz = json_decode($sslcommerzResponse, true);
 
             if (isset($sslcz['GatewayPageURL']) && $sslcz['GatewayPageURL'] !== "") {
                 return response()->json(['GatewayPageURL' => $sslcz['GatewayPageURL']]);

@@ -2,7 +2,6 @@
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -70,9 +69,16 @@ Route::post('/login', function (Request $request) {
         $customer = Customer::where('email', $request->email)->first();
         if (empty($customer)) throw new Exception("Customer not found.");
 
+        /*if (Hash::check($request->password, $customer->password)) {
+            $customer->api_token = $customer->id . '|' . Str::random(32);
+            $customer->update();
+        }*/
+
         if (Hash::check($request->password, $customer->password)) {
             $customer->api_token = $customer->id . '|' . Str::random(32);
             $customer->update();
+        } else {
+            return throw new Exception("Passwords do not match!");
         }
 
         Cache::put('customer_' . $customer->id, $customer->toArray(), now()->addDays(7));

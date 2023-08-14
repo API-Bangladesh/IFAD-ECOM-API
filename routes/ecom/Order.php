@@ -153,14 +153,14 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $order->grand_total = $total;
             $order->update();
 
-            // sending mail
-            $msg = "A product has been ordered from " . $request->shipping_address;
+            // // sending mail
+            // $msg = "A product has been ordered from " . $request->shipping_address;
 
-            // use wordwrap() if lines are longer than 70 characters
-            $msg = wordwrap($msg, 70);
+            // // use wordwrap() if lines are longer than 70 characters
+            // $msg = wordwrap($msg, 70);
 
-            // send email
-            mail("typetonazmul@gmail.com", "My subject", $msg);
+            // // send email
+            // mail("typetonazmul@gmail.com", "My subject", $msg);
 
 
             // make payment

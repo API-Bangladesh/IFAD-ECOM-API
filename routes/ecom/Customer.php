@@ -3,6 +3,7 @@
 use App\Models\Address;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 
@@ -38,22 +39,22 @@ Route::group(['middleware' => 'isCustomer'], function () {
 
     Route::put('/customers', function (Request $request) {
         try {
-            $validator = Validator::make($request->all(), [
+            $rules = [
                 'name' => ['required'],
                 'address' => ['required'],
                 'date_of_birth' => ['nullable'],
                 'gender' => ['nullable'],
                 'phone_number' => ['required'],
-                'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'size:2048'],
-            ]);
+            ];
+
+            if ($request->hasFile('image')) {
+                $rules['image'] = ['image', 'mimes:jpg,png,jpeg,gif', 'max:2048'];
+            }
+
+            $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
                 return make_validation_error_response($validator->getMessageBag());
-            }
-
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('public/profile_images');
-                $filename = basename($imagePath);
             }
 
             $customer = Customer::findOrFail(auth_customer('id'));
@@ -62,6 +63,20 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $customer->date_of_birth = $request->date_of_birth;
             $customer->gender = $request->gender;
             $customer->phone_number = $request->phone_number;
+
+            if ($request->hasFile('image')) {
+                $dir = 'uploads/' . date('Y') . '/' . date('m');
+
+                if ($request->filled('old_image')) {
+                    File::delete($request->old_image);
+                }
+
+                $image = $request->file('image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->move($dir, $imageName);
+                $customer->image = "$dir/$imageName";
+            }
+
             $customer->update();
 
             return make_success_response("Record saved successfully.", $customer);

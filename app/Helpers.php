@@ -3,7 +3,6 @@
 use App\Models\Order;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Session;
 
 /**
  * @return array[]
@@ -176,7 +175,7 @@ function auth_customer($key)
         $customer = Cache::get('customer_' . $id);
     }
 
-    return optional($customer)->$key;
+    return optional($customer)[$key];
 }
 
 /**

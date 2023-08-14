@@ -14,7 +14,6 @@
 */
 
 //product Category List
-use Illuminate\Support\Facades\Session;
 
 $router->get('/', function () {
     return 'API Server';
@@ -103,4 +102,7 @@ $router->group(['prefix' => 'ecom'], function () use ($router) {
     include_once 'ecom/PaymentMethod.php';
     include_once 'ecom/Common.php';
     include_once 'ecom/Review.php';
+    include_once 'ecom/Division.php';
+    include_once 'ecom/Districts.php';
+    include_once 'ecom/Upazila.php';
 });

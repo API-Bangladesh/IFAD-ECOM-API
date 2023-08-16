@@ -193,6 +193,8 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $order->payment_status_id = Order::PAYMENT_STATUS_UNPAID;
             $order->save();
 
+            $newlyCreatedOrderId = $order->id;
+
             $total = 0;
             foreach ($request->cart as $item) {
                 $total += $item['quantity'] * $item['unit_price'];
@@ -234,9 +236,9 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $post_data['total_amount'] = $request->grand_total;
             $post_data['currency'] = "BDT";
             $post_data['tran_id'] = "ifadshop" . uniqid();
-            $post_data['success_url'] = $completion . "?status=success";
-            $post_data['fail_url'] = $completion . "?status=fail";
-            $post_data['cancel_url'] = $completion . "?status=cancel";
+            $post_data['success_url'] = $completion . "?status=success&order_id=" . $newlyCreatedOrderId;
+            $post_data['fail_url'] = $completion . "?status=fail&order_id=" . $newlyCreatedOrderId;
+            $post_data['cancel_url'] = $completion . "?status=cancel&order_id=" . $newlyCreatedOrderId;
             # $post_data['multi_card_name'] = "mastercard,visacard,amexcard";  # DISABLE TO DISPLAY ALL AVAILABLE
 
             # EMI INFO

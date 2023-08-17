@@ -88,8 +88,8 @@ Route::post('/send-b2b-sale-form', function (Request $request) {
         ]);
 
         Mail::send(['text' => 'Email.send_b2b_sale_form'], $data, function ($message) use ($data) {
-            $message->to(config('mail.contact_form_recipient_email'));
-            $message->from($data["email_address"], $data["name"]);
+            $message->to($data["email_address"], $data["name"]);
+            $message->from(config('mail.contact_form_recipient_email'));
             $message->subject("IFAD ECOM: B2B Sale Request");
         });
 

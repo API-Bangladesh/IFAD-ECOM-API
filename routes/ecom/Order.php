@@ -101,7 +101,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $data = [
                 'name' => optional($order->customer)->name,
                 'email' => optional($order->customer)->email,
-                'subject' => "IFAD eShop: Order Status Changed",
+                'subject' => "IFAD eShop: Order Placing Notification",
             ];
             Mail::send(['html' => 'Email.send_order'], [
                 'order_status' => get_order_status('')

@@ -104,8 +104,8 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 'subject' => "IFAD eShop: Order Status Changed",
             ];
             Mail::send(['html' => 'Email.send_order'], [
-                'message' => 'Your Order Successfully Completed.',
-                'order_status' => 'Pending'
+                'payment_status_name' => 'Your Order Successfully Completed.',
+                'order_status_name' => 'Pending'
             ], function ($message) use ($data) {
                 $message->to($data["email"], $data["name"]);
                 $message->from(config('mail.from.address'), config('mail.from.name'));

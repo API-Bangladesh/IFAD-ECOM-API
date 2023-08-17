@@ -9,10 +9,9 @@
 </head>
 <body>
 <h3>Contact Form</h3>
-<ul>
-    <li><strong>Name:</strong> {{$name}}</li>
-    <li><strong>Email:</strong> {{$email}}</li>
-</ul>
+<p><strong>Name:</strong> {{$name}}</p></br>
+<p><strong>Email:</strong> {{$email}}</p>
+
 
 </body>
 </html>

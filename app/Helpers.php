@@ -50,6 +50,12 @@ function get_order_status_name($id)
     return '';
 }
 
+function get_order_status()
+{
+
+    return 'pending';
+}
+
 /**
  * @return array[]
  */

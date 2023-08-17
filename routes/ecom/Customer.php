@@ -41,7 +41,6 @@ Route::group(['middleware' => 'isCustomer'], function () {
         try {
             $rules = [
                 'name' => ['required'],
-                'address' => ['required'],
                 'date_of_birth' => ['nullable'],
                 'gender' => ['nullable'],
                 'phone_number' => ['required'],
@@ -59,7 +58,6 @@ Route::group(['middleware' => 'isCustomer'], function () {
 
             $customer = Customer::findOrFail(auth_customer('id'));
             $customer->name = $request->name;
-            $customer->address = $request->address;
             $customer->date_of_birth = $request->date_of_birth;
             $customer->gender = $request->gender;
             $customer->phone_number = $request->phone_number;

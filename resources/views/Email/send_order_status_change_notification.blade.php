@@ -10,8 +10,8 @@
 <body>
 <h3>Order status has been changed.</h3>
 <ul>
-    <li><strong>Payment Status:</strong> Your Order Successfully Completed</li>
-    <li><strong>Order Status:</strong> Pending</li>
+    <li><strong>Payment Status:</strong> {{$payment_status_name}}</li>
+    <li><strong>Order Status:</strong> {{$order_status_name}}</li>
 </ul>
 
 </body>

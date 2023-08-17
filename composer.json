@@ -10,7 +10,8 @@
         "illuminate/mail": "^9.45",
         "illuminate/session": "^9.52",
         "laravel/lumen-framework": "^9.0",
-        "nesbot/carbon": "^2.67"
+        "nesbot/carbon": "^2.67",
+        "motze92/office365-mail": "^2.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

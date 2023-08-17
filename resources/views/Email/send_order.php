@@ -10,8 +10,8 @@
 <body>
 <h3>Order Successful</h3>
 <ul>
-<li><strong>Message:</strong> {{$payment_status_name}}</li>
-    <li><strong>Order Status:</strong> {{$order_status_name}}</li>
+<li><strong>Message:</strong> Order Place Successfully</li>
+    <li><strong>Order Status:</strong> Pending</li>
 </ul>
 
 </body>

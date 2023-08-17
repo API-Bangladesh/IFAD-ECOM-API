@@ -37,10 +37,10 @@ Route::post('/send-contact-form', function (Request $request) {
             'message' => $request->message
         ];
 
-        Mail::send(['html' => 'Email.send_contact_form'], $data, function ($message) use ($data) {
-            $message->to($data["email"], $data["name"]);
+        Mail::send('Email.send_contact_form', $data, function ($message) use ($data) {
+            $message->to($data["email_address"], $data["name"]);
             $message->from(config('mail.contact_form_recipient_email'));
-            $message->subject($data["subject"]);
+            $message->subject("IFAD ECOM: Contact Request");
         });
 
     } catch (Exception $exception) {

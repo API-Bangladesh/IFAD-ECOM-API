@@ -78,7 +78,6 @@ Route::group(['middleware' => 'isCustomer'], function () {
         try {
             $validator = Validator::make($request->all(), [
                 'title' => ['required', Rule::unique('addresses', 'title')->ignore($id, 'id')],
-                'email' => ['required'],
                 'address_line_1' => ['required'],
                 'division_id' => ['required', 'numeric'],
                 'district_id' => ['required', 'numeric'],

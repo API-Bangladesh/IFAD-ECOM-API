@@ -98,6 +98,20 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $order->grand_total = $total;
             $order->update();
 
+            $data = [
+                'name' => optional($order->customer)->name,
+                'email' => optional($order->customer)->email,
+                'subject' => "IFAD eShop: Order Status Changed",
+            ];
+            Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+                'payment_status_name' => get_payment_status_name($request->payment_status_id),
+                'order_status_name' => get_order_status_name($request->payment_status_id)
+            ], function ($message) use ($data) {
+                $message->to($data["email"]);
+                $message->from(config('mail.from.address'), config('mail.from.name'));
+                $message->subject($data["subject"]);
+            });
+
             return make_success_response("Record saved successfully.");
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());

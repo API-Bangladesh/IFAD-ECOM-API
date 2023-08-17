@@ -9,15 +9,15 @@
 </head>
 <body>
 <h3>B2B Contact Details</h3>
-<ul>
-    <li><strong>Name:</strong> {{$name}}</li>
-    <li><strong>Contact:</strong> {{$contact_number}}</li>
-    <li><strong>Email:</strong> {{$email_address}}</li>
-    <li><strong>Country:</strong> {{$country_name}}</li>
-    <li><strong>Product Name:</strong> {{$product_name}}</li>
-    <li><strong>Product Code:</strong> {{$product_code}}</li>
-    <li><strong>Product Qty:</strong> {{$product_quantity}}</li>
-</ul>
+
+    <p><strong>Name:</strong> {{$name}}</p>
+    <p><strong>Contact:</strong> {{$contact_number}}</p>
+    <p><strong>Email:</strong> {{$email_address}}</p>
+    <p><strong>Country:</strong> {{$country_name}}</p>
+    <p><strong>Product Name:</strong> {{$product_name}}</p>
+    <p><strong>Product Code:</strong> {{$product_code}}</p>
+    <p><strong>Product Qty:</strong> {{$product_quantity}}</p>
+
 
 </body>
 </html>

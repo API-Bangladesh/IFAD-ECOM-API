@@ -38,8 +38,8 @@ Route::post('/send-contact-form', function (Request $request) {
         ];
 
         Mail::send(['text' => 'Email.send_contact_form'], $data, function ($message) use ($data) {
-            $message->to(config('mail.contact_form_recipient_email'));
-            $message->from($data["email"], $data["name"]);
+            $message->to($data["email"], $data["name"]);
+            $message->from(config('mail.contact_form_recipient_email'));
             $message->subject($data["subject"]);
         });
 

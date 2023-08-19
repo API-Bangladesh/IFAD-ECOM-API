@@ -255,7 +255,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $storePassword = env('SSL_STORE_PASSWORD');
             $storeApiUrl = env('SSL_API_URL');
             $completion = env('SSL_COMPLETION_URL');
-            $callbackUrl = env('SSL_CALLBACK_ROUTE');
+            $callbackUrl = url("ecom/orders/sslcommerz-callback/{$newlyCreatedOrderId}");
 
             $post_data = array();
             $post_data['store_id'] = $storeId;
@@ -263,9 +263,9 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $post_data['total_amount'] = $request->grand_total;
             $post_data['currency'] = "BDT";
             $post_data['tran_id'] = "ifadshop" . uniqid();
-            $post_data['success_url'] = $callbackUrl . $newlyCreatedOrderId;
-            $post_data['fail_url'] = $callbackUrl . $newlyCreatedOrderId;
-            $post_data['cancel_url'] = $callbackUrl . $newlyCreatedOrderId;
+            $post_data['success_url'] = $callbackUrl;
+            $post_data['fail_url'] = $callbackUrl;
+            $post_data['cancel_url'] = $callbackUrl;
             # $post_data['multi_card_name'] = "mastercard,visacard,amexcard";  # DISABLE TO DISPLAY ALL AVAILABLE
 
             # EMI INFO
@@ -387,7 +387,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
           $storePassword = env('SSL_STORE_PASSWORD');
           $storeApiUrl = env('SSL_API_URL');
           $completion = env('SSL_COMPLETION_URL');
-          $callbackUrl = env('SSL_CALLBACK_ROUTE');
+          $callbackUrl = url("ecom/orders/sslcommerz-callback/{$order_id}");
 
           $post_data = array();
           $post_data['store_id'] = $storeId;
@@ -395,9 +395,9 @@ Route::group(['middleware' => 'isCustomer'], function () {
           $post_data['total_amount'] = $order->grand_total;
           $post_data['currency'] = "BDT";
           $post_data['tran_id'] = "ifadshop" . uniqid();
-          $post_data['success_url'] = $callbackUrl . $order_id;
-          $post_data['fail_url'] = $callbackUrl . $order_id;
-          $post_data['cancel_url'] = $callbackUrl . $order_id;
+          $post_data['success_url'] = $callbackUrl;
+          $post_data['fail_url'] = $callbackUrl;
+          $post_data['cancel_url'] = $callbackUrl;
           # $post_data['multi_card_name'] = "mastercard,visacard,amexcard";  # DISABLE TO DISPLAY ALL AVAILABLE
 
           # EMI INFO

@@ -255,6 +255,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $storePassword = env('SSL_STORE_PASSWORD');
             $storeApiUrl = env('SSL_API_URL');
             $completion = env('SSL_COMPLETION_URL');
+            $callbackUrl = env('SSL_CALLBACK_ROUTE');
 
             $post_data = array();
             $post_data['store_id'] = $storeId;
@@ -262,9 +263,9 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $post_data['total_amount'] = $request->grand_total;
             $post_data['currency'] = "BDT";
             $post_data['tran_id'] = "ifadshop" . uniqid();
-            $post_data['success_url'] = $completion . "?status=success&order_id=" . $newlyCreatedOrderId;
-            $post_data['fail_url'] = $completion . "?status=fail&order_id=" . $newlyCreatedOrderId;
-            $post_data['cancel_url'] = $completion . "?status=cancel&order_id=" . $newlyCreatedOrderId;
+            $post_data['success_url'] = $callbackUrl . $newlyCreatedOrderId;
+            $post_data['fail_url'] = $callbackUrl . $newlyCreatedOrderId;
+            $post_data['cancel_url'] = $callbackUrl . $newlyCreatedOrderId;
             # $post_data['multi_card_name'] = "mastercard,visacard,amexcard";  # DISABLE TO DISPLAY ALL AVAILABLE
 
             # EMI INFO
@@ -386,6 +387,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
           $storePassword = env('SSL_STORE_PASSWORD');
           $storeApiUrl = env('SSL_API_URL');
           $completion = env('SSL_COMPLETION_URL');
+          $callbackUrl = env('SSL_CALLBACK_ROUTE');
 
           $post_data = array();
           $post_data['store_id'] = $storeId;
@@ -393,9 +395,9 @@ Route::group(['middleware' => 'isCustomer'], function () {
           $post_data['total_amount'] = $order->grand_total;
           $post_data['currency'] = "BDT";
           $post_data['tran_id'] = "ifadshop" . uniqid();
-          $post_data['success_url'] = $completion . "?status=success&order_id=" . $order_id;
-          $post_data['fail_url'] = $completion . "?status=fail&order_id=" . $order_id;
-          $post_data['cancel_url'] = $completion . "?status=cancel&order_id=" . $order_id;
+          $post_data['success_url'] = $callbackUrl . $order_id;
+          $post_data['fail_url'] = $callbackUrl . $order_id;
+          $post_data['cancel_url'] = $callbackUrl . $order_id;
           # $post_data['multi_card_name'] = "mastercard,visacard,amexcard";  # DISABLE TO DISPLAY ALL AVAILABLE
 
           # EMI INFO
@@ -487,5 +489,127 @@ Route::group(['middleware' => 'isCustomer'], function () {
           return make_error_response($exception->getMessage());
       }
   });
+});
+
+Route::post('/orders/sslcommerz-callback/{order_id}', function (Request $request, $order_id) {
+  $completion = env('SSL_COMPLETION_URL');
+
+  if ($_POST["status"] === "VALID") {
+    try {
+      // $validator = Validator::make($request->all(), [
+      //     // 'payment_status_id' => ['required'],
+      //     // 'order_status_id' => ['required'],
+      // ]);
+
+      // if ($validator->fails()) {
+      //     return make_validation_error_response($validator->getMessageBag());
+      // }
+
+      $valId=urlencode($_POST['val_id']);
+      $storeId = env('SSL_STORE_ID');
+      $storePassword = env('SSL_STORE_PASSWORD');
+      $storeValidationUrl = env('SSL_VALIDATION_URL');
+      $requested_url = ($storeValidationUrl."?val_id=".$valId."&store_id=".$storeId."&store_passwd=".$storePassword."&v=1&format=json");
+
+      $handle = curl_init();
+      curl_setopt($handle, CURLOPT_URL, $requested_url);
+      curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, false); # IF YOU RUN FROM LOCAL PC
+      curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false); # IF YOU RUN FROM LOCAL PC
+
+      $result = curl_exec($handle);
+
+      $code = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+
+      if($code == 200 && !( curl_errno($handle)))
+      {
+
+        # TO CONVERT AS ARRAY
+        # $result = json_decode($result, true);
+        # $status = $result['status'];
+
+        # TO CONVERT AS OBJECT
+        $result = json_decode($result);
+
+        # TRANSACTION INFO
+        $status = $result->status;
+        $tran_date = $result->tran_date;
+        $tran_id = $result->tran_id;
+        $val_id = $result->val_id;
+        $amount = $result->amount;
+        $store_amount = $result->store_amount;
+        $bank_tran_id = $result->bank_tran_id;
+        $card_type = $result->card_type;
+
+        # EMI INFO
+        $emi_instalment = $result->emi_instalment;
+        $emi_amount = $result->emi_amount;
+        $emi_description = $result->emi_description;
+        $emi_issuer = $result->emi_issuer;
+
+        # ISSUER INFO
+        $card_no = $result->card_no;
+        $card_issuer = $result->card_issuer;
+        $card_brand = $result->card_brand;
+        $card_issuer_country = $result->card_issuer_country;
+        $card_issuer_country_code = $result->card_issuer_country_code;
+
+        # API AUTHENTICATION
+        $APIConnect = $result->APIConnect;
+        $validated_on = $result->validated_on;
+        $gw_version = $result->gw_version;
+
+        app('db')->transaction(function () use ($order_id, $request) {
+          $order = Order::findOrFail($order_id);
+          $order->payment_status_id = 1;
+          $order->order_status_id = $order_id;
+          $order->update();
+
+          if (1 == Order::PAYMENT_STATUS_PAID) {
+              $order->orderItems->map(function ($item) {
+                  if ($item->type === 'product') {
+                      $inventory = $item->inventory;
+                      if ($inventory->is_manage_stock) {
+                          $inventory->stock_quantity = $inventory->stock_quantity - $item->quantity;
+                          $inventory->update();
+                      }
+                  }
+                  if ($item->type === 'combo') {
+                      $combo = $item->combo;
+                      if ($combo->is_manage_stock) {
+                          $combo->stock_quantity = $combo->stock_quantity - $item->quantity;
+                          $combo->update();
+                      }
+                  }
+              });
+          }
+
+          $data = [
+              'name' => optional($order->customer)->name,
+              'email' => optional($order->customer)->email,
+              'subject' => "IFAD eShop: Order Status Changed",
+          ];
+          Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+              'payment_status_name' => get_payment_status_name(1),
+              'order_status_name' => get_order_status_name(1)
+          ], function ($message) use ($data) {
+              $message->to($data["email"]);
+              $message->from(config('mail.from.address'), config('mail.from.name'));
+              $message->subject($data["subject"]);
+          });
+        });
+
+        return redirect($completion . "?status=success");
+      } else {
+        return redirect($completion . "?status=fail");
+      }
+  } catch (Exception $exception) {
+      return make_error_response($exception->getMessage());
+  }
+  } elseif ($_POST["status"] === "FAILED") {
+    return redirect($completion . "?status=fail");
+  } elseif ($_POST["status"] === "CANCEL") {
+    return redirect($completion . "?status=cancel");
+  }
 });
 

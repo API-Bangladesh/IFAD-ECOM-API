@@ -19,6 +19,35 @@ $router->get('/', function () {
     return 'API Server';
 });
 
+/*$router->get('/mailtest', function () {
+    $order = \App\Models\Order::with(['customer', 'paymentMethod', 'orderItems'])->find(9);
+
+   //dd($order);
+
+    $data = [
+        'name' => optional($order->customer)->name,
+        'email' => optional($order->customer)->email,
+        'subject' => "IFAD eShop: Order Placing Notification",
+    ];
+
+    return view('Email.send_order', [
+        'invoice_id' => $order->id,
+        'customer_name' => optional($order->customer)->name,
+        'orderItems' => $order->orderItems,
+        'grand_total' => $order->grand_total,
+        'shipping_address' => $order->shipping_address,
+    ]);
+
+    Mail::send('Email.send_order', [
+        'invoice_id' => $order->id,
+        'customer_name' => $order->customer->name,
+    ], function ($message) use ($data) {
+        $message->to($data["email"], $data["name"]);
+        $message->from(config('mail.from.address'), config('mail.from.name'));
+        $message->subject($data["subject"]);
+    });
+});*/
+
 $router->get('/categories', 'ProductController@allCategory');
 //product Category id wies subcategory List /{1}
 $router->get('/categories/{id}', 'ProductController@allSubCategory');

@@ -1,8 +1,8 @@
 <?php
 
+use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
@@ -105,10 +105,18 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 'email' => optional($order->customer)->email,
                 'subject' => "IFAD eShop: Order Placing Notification",
             ];
-            Mail::send(['html' => 'Email.send_order'], [
-                'order_status' => get_order_status('')
+
+            Mail::send('Email.send_order', [
+                'invoice_id' => $order->id,
+                'customer_name' => optional($order->customer)->name,
+                'orderItems' => $order->orderItems,
+                'grand_total' => $order->grand_total,
+                'shipping_address' => $order->shipping_address,
             ], function ($message) use ($data) {
-                $message->to($data["email"], $data["name"]);
+                $message->to([
+                    $data["email"] => $data["name"],
+                    "ifadeshop@ifadgroup.com" => "ifadeshop"
+                ]);
                 $message->from(config('mail.from.address'), config('mail.from.name'));
                 $message->subject($data["subject"]);
             });

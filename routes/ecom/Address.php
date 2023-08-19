@@ -4,7 +4,6 @@ use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,7 +37,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
     Route::post('/addresses', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [
-                'title' => ['required', Rule::unique('addresses', 'title')],
+                'title' => ['required'],
                 'name' => ['required'],
                 'address_line_1' => ['required'],
                 'division_id' => ['required', 'numeric'],
@@ -77,7 +76,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
     Route::put('/addresses/{id}', function (Request $request, $id) {
         try {
             $validator = Validator::make($request->all(), [
-                'title' => ['required', Rule::unique('addresses', 'title')->ignore($id, 'id')],
+                'title' => ['required'],
                 'address_line_1' => ['required'],
                 'division_id' => ['required', 'numeric'],
                 'district_id' => ['required', 'numeric'],

@@ -9,7 +9,7 @@
 </head>
 <body>
 <h3>Contact Form</h3>
-<p><strong>Name:</strong> {{$name}}</p></br>
+<p><strong>Name:</strong> {{$name}}</p>
 <p><strong>Email:</strong> {{$email}}</p>
 
 

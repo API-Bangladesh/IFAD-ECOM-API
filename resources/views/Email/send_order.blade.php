@@ -17,7 +17,7 @@
             <p>Thank you for your order! We're excited to let you know that your order has been confirmed and is being
                 processed.</p>
             <h2>Order Details:</h2>
-            <h4>Order ID:.{{ $invoice_id }}</h4>
+            <h4>Order ID: {{ $invoice_id }}</h4>
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                 <tr>

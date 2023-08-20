@@ -23,7 +23,7 @@
                 <tr>
                     <th style="border: 1px solid #dddddd; padding: 8px; text-align: left;">Product</th>
                     <th style="border: 1px solid #dddddd; padding: 8px; text-align: left;">Quantity</th>
-                    <th style="border: 1px solid #dddddd; padding: 8px; text-align: left;">Price</th>
+                    <th style="border: 1px solid #dddddd; padding: 8px; text-align: right;">Price</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -35,7 +35,7 @@
                             <td style="border: 1px solid #dddddd; padding: 8px;">{{ optional($orderItem->combo)->title }}</td>
                         @endif
                         <td style="border: 1px solid #dddddd; padding: 8px;">{{ $orderItem->quantity }} Tk</td>
-                        <td style="border: 1px solid #dddddd; padding: 8px;">{{ $orderItem->unit_price }} Tk</td>
+                        <td style="border: 1px solid #dddddd; padding: 8px; text-align: right;">{{ $orderItem->unit_price }} Tk</td>
                     </tr>
                 @endforeach
                 </tbody>

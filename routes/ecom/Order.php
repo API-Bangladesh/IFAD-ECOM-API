@@ -667,8 +667,8 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
                 'subject' => "IFAD eShop: Order Status Changed",
             ];
             Mail::send(['html' => 'Email.send_order_status_change_notification'], [
-                'payment_status_name' => get_payment_status_name($request->payment_status_id),
-                'order_status_name' => get_order_status_name($request->order_status_id)
+                'payment_status_name' => get_payment_status_name($order->payment_status_id),
+                'order_status_name' => get_order_status_name($order->order_status_id)
             ], function ($message) use ($data) {
                 $message->to($data["email"]);
                 $message->from(config('mail.from.address'), config('mail.from.name'));

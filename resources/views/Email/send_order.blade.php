@@ -40,6 +40,7 @@
                 @endforeach
                 </tbody>
             </table>
+            <p style="text-align: right; margin-top: 10px;"><strong>Shipping Charge: {{ $shipping_charge }} Tk</strong></p>
             <p style="text-align: right; margin-top: 10px;"><strong>Total: {{ $grand_total }} Tk</strong></p>
             <p>Your order will be shipped to:</p>
             <p>{{ $shipping_address }}</p>

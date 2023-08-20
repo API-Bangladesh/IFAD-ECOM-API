@@ -638,8 +638,8 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
     if ($status === "success") {
         app('db')->transaction(function () use ($order_id, $request) {
             $order = Order::findOrFail($order_id);
-            $order->payment_status_id = 1;
-            $order->order_status_id = $order_id;
+            $order->payment_status_id = Order::PAYMENT_STATUS_PAID;
+            $order->order_status_id = Order::ORDER_STATUS_PROCESSING;
             $order->update();
     
             if (1 == Order::PAYMENT_STATUS_PAID) {
@@ -680,9 +680,49 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
     }
 
     else if ($status === "fail") {
+        app('db')->transaction(function () use ($order_id, $request) {
+            $order = Order::findOrFail($order_id);
+            $order->payment_status_id = Order::PAYMENT_STATUS_UNPAID;
+            $order->order_status_id = Order::ORDER_STATUS_CANCELED;
+            $order->update();
+    
+            $data = [
+                'name' => optional($order->customer)->name,
+                'email' => optional($order->customer)->email,
+                'subject' => "IFAD eShop: Order Status Changed",
+            ];
+            Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+                'payment_status_name' => get_payment_status_name($order->payment_status_id),
+                'order_status_name' => get_order_status_name($order->order_status_id)
+            ], function ($message) use ($data) {
+                $message->to($data["email"]);
+                $message->from(config('mail.from.address'), config('mail.from.name'));
+                $message->subject($data["subject"]);
+            });
+        });
         return redirect($completion . "?status=fail");
     }
     else if ($status === "cancel") {
+        app('db')->transaction(function () use ($order_id, $request) {
+            $order = Order::findOrFail($order_id);
+            $order->payment_status_id = Order::PAYMENT_STATUS_UNPAID;
+            $order->order_status_id = Order::ORDER_STATUS_CANCELED;
+            $order->update();
+    
+            $data = [
+                'name' => optional($order->customer)->name,
+                'email' => optional($order->customer)->email,
+                'subject' => "IFAD eShop: Order Status Changed",
+            ];
+            Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+                'payment_status_name' => get_payment_status_name($order->payment_status_id),
+                'order_status_name' => get_order_status_name($order->order_status_id)
+            ], function ($message) use ($data) {
+                $message->to($data["email"]);
+                $message->from(config('mail.from.address'), config('mail.from.name'));
+                $message->subject($data["subject"]);
+            });
+        });
         return redirect($completion . "?status=cancel");
     }
 });

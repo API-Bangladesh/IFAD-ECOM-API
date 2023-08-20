@@ -263,7 +263,11 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $storePassword = env('SSL_STORE_PASSWORD');
             $storeApiUrl = env('SSL_API_URL');
             $completion = env('SSL_COMPLETION_URL');
-            $callbackUrl = url("ecom/orders/sslcommerz-callback/{$newlyCreatedOrderId}");
+            // $callbackUrl = url("ecom/orders/sslcommerz-callback/{$newlyCreatedOrderId}");
+            $callbackUrl = env('SSL_CALLBACK_ROUTE');
+            $successUrl = $callbackUrl . "secureurlasdfghjk/" . $newlyCreatedOrderId . "/success";
+            $failUrl = $callbackUrl . "secureurlasdfghjk/" . $newlyCreatedOrderId . "/fail";
+            $cancelUrl = $callbackUrl . "secureurlasdfghjk/" . $newlyCreatedOrderId . "/cancel";
 
             $post_data = array();
             $post_data['store_id'] = $storeId;
@@ -271,9 +275,9 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $post_data['total_amount'] = $request->grand_total;
             $post_data['currency'] = "BDT";
             $post_data['tran_id'] = "ifadshop" . uniqid();
-            $post_data['success_url'] = $callbackUrl;
-            $post_data['fail_url'] = $callbackUrl;
-            $post_data['cancel_url'] = $callbackUrl;
+            $post_data['success_url'] = $successUrl;
+            $post_data['fail_url'] = $failUrl;
+            $post_data['cancel_url'] = $cancelUrl;
             # $post_data['multi_card_name'] = "mastercard,visacard,amexcard";  # DISABLE TO DISPLAY ALL AVAILABLE
 
             # EMI INFO
@@ -395,7 +399,12 @@ Route::group(['middleware' => 'isCustomer'], function () {
           $storePassword = env('SSL_STORE_PASSWORD');
           $storeApiUrl = env('SSL_API_URL');
           $completion = env('SSL_COMPLETION_URL');
-          $callbackUrl = url("ecom/orders/sslcommerz-callback/{$order_id}");
+          // $callbackUrl = url("ecom/orders/sslcommerz-callback/{$order_id}");
+          $callbackUrl = env('SSL_CALLBACK_ROUTE');
+          $successUrl = $callbackUrl . "secureurlasdfghjk/" . $order_id . "/success";
+          $failUrl = $callbackUrl . "secureurlasdfghjk/" . $order_id . "/fail";
+          $cancelUrl = $callbackUrl . "secureurlasdfghjk/" . $order_id . "/cancel";
+          
 
           $post_data = array();
           $post_data['store_id'] = $storeId;
@@ -403,9 +412,9 @@ Route::group(['middleware' => 'isCustomer'], function () {
           $post_data['total_amount'] = $order->grand_total;
           $post_data['currency'] = "BDT";
           $post_data['tran_id'] = "ifadshop" . uniqid();
-          $post_data['success_url'] = $callbackUrl;
-          $post_data['fail_url'] = $callbackUrl;
-          $post_data['cancel_url'] = $callbackUrl;
+          $post_data['success_url'] = $successUrl;
+          $post_data['fail_url'] = $failUrl;
+          $post_data['cancel_url'] = $cancelUrl;
           # $post_data['multi_card_name'] = "mastercard,visacard,amexcard";  # DISABLE TO DISPLAY ALL AVAILABLE
 
           # EMI INFO
@@ -619,5 +628,60 @@ Route::post('/orders/sslcommerz-callback/{order_id}', function (Request $request
   } elseif ($_POST["status"] === "CANCEL") {
     return redirect($completion . "?status=cancel");
   }
+});
+
+Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}', function (Request $request, $order_id, $status) {
+    $completion = env('SSL_COMPLETION_URL');
+
+    if ($status === "success") {
+        app('db')->transaction(function () use ($order_id, $request) {
+            $order = Order::findOrFail($order_id);
+            $order->payment_status_id = 1;
+            $order->order_status_id = $order_id;
+            $order->update();
+    
+            if (1 == Order::PAYMENT_STATUS_PAID) {
+                $order->orderItems->map(function ($item) {
+                    if ($item->type === 'product') {
+                        $inventory = $item->inventory;
+                        if ($inventory->is_manage_stock) {
+                            $inventory->stock_quantity = $inventory->stock_quantity - $item->quantity;
+                            $inventory->update();
+                        }
+                    }
+                    if ($item->type === 'combo') {
+                        $combo = $item->combo;
+                        if ($combo->is_manage_stock) {
+                            $combo->stock_quantity = $combo->stock_quantity - $item->quantity;
+                            $combo->update();
+                        }
+                    }
+                });
+            }
+    
+            $data = [
+                'name' => optional($order->customer)->name,
+                'email' => optional($order->customer)->email,
+                'subject' => "IFAD eShop: Order Status Changed",
+            ];
+            Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+                'payment_status_name' => get_payment_status_name(1),
+                'order_status_name' => get_order_status_name(1)
+            ], function ($message) use ($data) {
+                $message->to($data["email"]);
+                $message->from(config('mail.from.address'), config('mail.from.name'));
+                $message->subject($data["subject"]);
+            });
+        });
+    
+        return redirect($completion . "?status=success");
+    }
+
+    else if ($status === "fail") {
+        return redirect($completion . "?status=fail");
+    }
+    else if ($status === "cancel") {
+        return redirect($completion . "?status=cancel");
+    }
 });
 

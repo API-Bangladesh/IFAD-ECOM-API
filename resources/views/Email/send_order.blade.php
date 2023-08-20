@@ -40,8 +40,9 @@
                 @endforeach
                 </tbody>
             </table>
-            <p style="text-align: right; margin-top: 10px;"><strong>Shipping Charge: {{ $shipping_charge }} Tk</strong></p>
-            <p style="text-align: right; margin-top: 10px;"><strong>Total: {{ $grand_total }} Tk</strong></p>
+            <p style="text-align: right; margin-top: 10px; margin-right:20px;">Sub Total: {{ $sub_total }} Tk</p>
+            <p style="text-align: right; margin-top: 10px; margin-right:20px;">Shipping Charge: {{ $shipping_charge }} Tk</p>
+            <p style="text-align: right; margin-top: 10px; margin-right:20px;"><strong>Total: {{ $grand_total }} Tk</strong></p>
             <p>Your order will be shipped to:</p>
             <p>{{ $shipping_address }}</p>
             <p>If you have any questions about your order, feel free to contact our customer support at

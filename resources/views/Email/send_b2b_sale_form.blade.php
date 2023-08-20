@@ -1,23 +1,28 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>B2B Inquiry Details</title>
 </head>
-<body>
-<h3>B2B Contact Details</h3>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
 
-    <p><strong>Name:</strong> {{$name}}</p>
-    <p><strong>Contact:</strong> {{$contact_number}}</p>
-    <p><strong>Email:</strong> {{$email_address}}</p>
-    <p><strong>Country:</strong> {{$country_name}}</p>
-    <p><strong>Product Name:</strong> {{$product_name}}</p>
-    <p><strong>Product Code:</strong> {{$product_code}}</p>
-    <p><strong>Product Qty:</strong> {{$product_quantity}}</p>
-
+<div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
+    <div style="text-align: center; padding: 20px;">
+        <h2 style="color: #333333;">B2B Inquiry from ifadeshop.com</h2>
+    </div>
+    <div style="padding: 20px;">
+        <p>Country Name: {{ $country_name }}</p>
+        <p>Name: {{ $name }}</p>
+        <p>Product Name: {{ $product_name }}</p>
+        <p>Product Code: {{ $product_code }}</p>
+        <p>Product Quantity: {{ $product_quantity }}</p>
+        <p>Contact Number: {{ $contact_number }}</p>
+        <p>Email Address: {{ $email_address }}</p>
+    </div>
+    {{-- <div style="text-align: center; padding: 20px; background-color: #f7f7f7;">
+        <p style="color: #888888;">This is an automated email. Please do not reply.</p>
+    </div> --}}
+</div>
 
 </body>
 </html>

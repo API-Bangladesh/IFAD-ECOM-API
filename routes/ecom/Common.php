@@ -30,15 +30,18 @@ Route::post('/send-contact-form', function (Request $request) {
             return make_validation_error_response($validator->getMessageBag());
         }
 
-        $data = [
+      $data = [
             'name' => $request->name,
             'email' => $request->email,
             'subject' => $request->subject,
-            'message' => $request->message
+            'contactmessage' => $request->message
         ];
 
         Mail::send('Email.send_contact_form', $data, function ($message) use ($data) {
-            $message->to($data["email"], $data["name"]);
+             $message->to([
+                    $data["email"] => $data["name"],
+                    "ifadeshop@ifadgroup.com" => "ifadeshop"
+                ]);
             $message->from(config('mail.contact_form_recipient_email'));
             $message->subject("IFAD ECOM: Contact Request");
         });
@@ -88,7 +91,10 @@ Route::post('/send-b2b-sale-form', function (Request $request) {
         ]);
 
         Mail::send('Email.send_b2b_sale_form', $data, function ($message) use ($data) {
-            $message->to($data["email_address"], $data["name"]);
+               $message->to([
+                    $data["email_address"] => $data["name"],
+                    "ifadeshop@ifadgroup.com" => "ifadeshop"
+                ]);
             $message->from(config('mail.contact_form_recipient_email'));
             $message->subject("IFAD ECOM: B2B Sale Request");
         });

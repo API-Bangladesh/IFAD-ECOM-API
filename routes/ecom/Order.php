@@ -110,6 +110,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
                 'invoice_id' => $order->id,
                 'customer_name' => optional($order->customer)->name,
                 'orderItems' => $order->orderItems,
+                'sub_total' => $order->sub_total,
                 'shipping_charge' => $order->shipping_charge,
                 'grand_total' => $order->grand_total,
                 'shipping_address' => $order->shipping_address,

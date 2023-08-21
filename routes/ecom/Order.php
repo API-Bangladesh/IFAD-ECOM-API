@@ -642,25 +642,23 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
             $order->order_status_id = Order::ORDER_STATUS_PROCESSING;
             $order->update();
     
-            if (1 == Order::PAYMENT_STATUS_PAID) {
-                $order->orderItems->map(function ($item) {
-                    if ($item->type === 'product') {
-                        $inventory = $item->inventory;
-                        if ($inventory->is_manage_stock) {
-                            $inventory->stock_quantity = $inventory->stock_quantity - $item->quantity;
-                            $inventory->update();
-                        }
+            $order->orderItems->map(function ($item) {
+                if ($item->type === 'product') {
+                    $inventory = $item->inventory;
+                    if ($inventory->is_manage_stock) {
+                        $inventory->stock_quantity = $inventory->stock_quantity - $item->quantity;
+                        $inventory->update();
                     }
-                    if ($item->type === 'combo') {
-                        $combo = $item->combo;
-                        if ($combo->is_manage_stock) {
-                            $combo->stock_quantity = $combo->stock_quantity - $item->quantity;
-                            $combo->update();
-                        }
+                }
+                if ($item->type === 'combo') {
+                    $combo = $item->combo;
+                    if ($combo->is_manage_stock) {
+                        $combo->stock_quantity = $combo->stock_quantity - $item->quantity;
+                        $combo->update();
                     }
-                });
-            }
-    
+                }
+            });
+
             $data = [
                 'name' => optional($order->customer)->name,
                 'email' => optional($order->customer)->email,
@@ -678,7 +676,6 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
     
         return redirect($completion . "?status=success");
     }
-
     else if ($status === "fail") {
         app('db')->transaction(function () use ($order_id, $request) {
             $order = Order::findOrFail($order_id);
@@ -725,5 +722,6 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
         });
         return redirect($completion . "?status=cancel");
     }
+    return redirect($completion . "?status=fail");
 });
 

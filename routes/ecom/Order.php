@@ -243,6 +243,29 @@ Route::group(['middleware' => 'isCustomer'], function () {
             $order->grand_total = $total + $request->shipping_charge;
             $order->update();
 
+            $data = [
+                'name' => optional($order->customer)->name,
+                'email' => optional($order->customer)->email,
+                'subject' => "IFAD eShop: Order Placing Notification",
+            ];
+
+            Mail::send('Email.send_order', [
+                'invoice_id' => $order->id,
+                'customer_name' => optional($order->customer)->name,
+                'orderItems' => $order->orderItems,
+                'sub_total' => $order->sub_total,
+                'shipping_charge' => $order->shipping_charge,
+                'grand_total' => $order->grand_total,
+                'shipping_address' => $order->shipping_address,
+            ], function ($message) use ($data) {
+                $message->to([
+                    $data["email"] => $data["name"],
+                    "ifadeshop@ifadgroup.com" => "ifadeshop"
+                ]);
+                $message->from(config('mail.from.address'), config('mail.from.name'));
+                $message->subject($data["subject"]);
+            });
+
             if (strlen($productNames) > 250) {
                 $productNames = substr($productNames, 0, 250); // max 255
             }
@@ -662,13 +685,24 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
             $data = [
                 'name' => optional($order->customer)->name,
                 'email' => optional($order->customer)->email,
-                'subject' => "IFAD eShop: Order Status Changed",
+                'subject' => "IFAD eShop: Order Placing Notification",
             ];
-            Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+
+            Mail::send('Email.send_order_status_change_notification', [
+                'invoice_id' => $order->id,
+                'customer_name' => optional($order->customer)->name,
+                'orderItems' => $order->orderItems,
+                'sub_total' => $order->sub_total,
+                'shipping_charge' => $order->shipping_charge,
+                'grand_total' => $order->grand_total,
+                'shipping_address' => $order->shipping_address,
                 'payment_status_name' => get_payment_status_name($order->payment_status_id),
                 'order_status_name' => get_order_status_name($order->order_status_id)
             ], function ($message) use ($data) {
-                $message->to($data["email"]);
+                $message->to([
+                    $data["email"] => $data["name"],
+                    "ifadeshop@ifadgroup.com" => "ifadeshop"
+                ]);
                 $message->from(config('mail.from.address'), config('mail.from.name'));
                 $message->subject($data["subject"]);
             });
@@ -686,13 +720,24 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
             $data = [
                 'name' => optional($order->customer)->name,
                 'email' => optional($order->customer)->email,
-                'subject' => "IFAD eShop: Order Status Changed",
+                'subject' => "IFAD eShop: Order Placing Notification",
             ];
-            Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+
+            Mail::send('Email.send_order_status_change_notification', [
+                'invoice_id' => $order->id,
+                'customer_name' => optional($order->customer)->name,
+                'orderItems' => $order->orderItems,
+                'sub_total' => $order->sub_total,
+                'shipping_charge' => $order->shipping_charge,
+                'grand_total' => $order->grand_total,
+                'shipping_address' => $order->shipping_address,
                 'payment_status_name' => get_payment_status_name($order->payment_status_id),
                 'order_status_name' => get_order_status_name($order->order_status_id)
             ], function ($message) use ($data) {
-                $message->to($data["email"]);
+                $message->to([
+                    $data["email"] => $data["name"],
+                    "ifadeshop@ifadgroup.com" => "ifadeshop"
+                ]);
                 $message->from(config('mail.from.address'), config('mail.from.name'));
                 $message->subject($data["subject"]);
             });
@@ -709,13 +754,24 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
             $data = [
                 'name' => optional($order->customer)->name,
                 'email' => optional($order->customer)->email,
-                'subject' => "IFAD eShop: Order Status Changed",
+                'subject' => "IFAD eShop: Order Placing Notification",
             ];
-            Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+
+            Mail::send('Email.send_order_status_change_notification', [
+                'invoice_id' => $order->id,
+                'customer_name' => optional($order->customer)->name,
+                'orderItems' => $order->orderItems,
+                'sub_total' => $order->sub_total,
+                'shipping_charge' => $order->shipping_charge,
+                'grand_total' => $order->grand_total,
+                'shipping_address' => $order->shipping_address,
                 'payment_status_name' => get_payment_status_name($order->payment_status_id),
                 'order_status_name' => get_order_status_name($order->order_status_id)
             ], function ($message) use ($data) {
-                $message->to($data["email"]);
+                $message->to([
+                    $data["email"] => $data["name"],
+                    "ifadeshop@ifadgroup.com" => "ifadeshop"
+                ]);
                 $message->from(config('mail.from.address'), config('mail.from.name'));
                 $message->subject($data["subject"]);
             });

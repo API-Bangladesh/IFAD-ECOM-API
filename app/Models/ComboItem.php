@@ -32,6 +32,6 @@ class ComboItem extends Model
      */
     public function inventoryVariants()
     {
-        return $this->hasMany(InventoryVariant::class, 'inventory_id', 'id')->with('variant', 'variantOption');
+        return $this->hasMany(InventoryVariant::class, 'inventory_id', 'inventory_id')->with('variant', 'variantOption');
     }
 }

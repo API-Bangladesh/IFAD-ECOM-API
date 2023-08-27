@@ -2,7 +2,6 @@
 
 use App\Models\Order;
 use App\Models\Review;
-use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -108,7 +107,7 @@ Route::get('combos/{comboId}/reviews/ability', function ($comboId) {
     }
 });
 
-Route::group(['middleware' => 'isCustomer'], function () {
+Route::group(['middleware' => 'auth:api'], function () {
     Route::post('/reviews', function (Request $request) {
         try {
             $validator = Validator::make($request->all(), [

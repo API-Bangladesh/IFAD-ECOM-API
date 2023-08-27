@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Validator;
 |
 */
 
-Route::group(['middleware' => 'isCustomer'], function () {
+Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/customers', function (Request $request) {
         try {

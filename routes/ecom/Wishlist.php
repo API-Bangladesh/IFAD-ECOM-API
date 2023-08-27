@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Customer;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -17,7 +16,7 @@ use Illuminate\Support\Facades\Validator;
 |
 */
 
-Route::group(['middleware' => 'isCustomer'], function () {
+Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/wishlist', function (Request $request) {
         try {

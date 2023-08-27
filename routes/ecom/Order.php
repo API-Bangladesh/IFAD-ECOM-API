@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Validator;
 |
 */
 
-Route::group(['middleware' => 'isCustomer'], function () {
+Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('/orders', function (Request $request) {
         try {
@@ -429,7 +429,7 @@ Route::group(['middleware' => 'isCustomer'], function () {
           $successUrl = $callbackUrl . "secureurlasdfghjk/" . $order_id . "/success";
           $failUrl = $callbackUrl . "secureurlasdfghjk/" . $order_id . "/fail";
           $cancelUrl = $callbackUrl . "secureurlasdfghjk/" . $order_id . "/cancel";
-          
+
 
           $post_data = array();
           $post_data['store_id'] = $storeId;
@@ -664,7 +664,7 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
             $order->payment_status_id = Order::PAYMENT_STATUS_PAID;
             $order->order_status_id = Order::ORDER_STATUS_PROCESSING;
             $order->update();
-    
+
             $order->orderItems->map(function ($item) {
                 if ($item->type === 'product') {
                     $inventory = $item->inventory;
@@ -707,7 +707,7 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
                 $message->subject($data["subject"]);
             });
         });
-    
+
         return redirect($completion . "?status=success");
     }
     else if ($status === "fail") {
@@ -716,7 +716,7 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
             $order->payment_status_id = Order::PAYMENT_STATUS_UNPAID;
             $order->order_status_id = Order::ORDER_STATUS_CANCELED;
             $order->update();
-    
+
             $data = [
                 'name' => optional($order->customer)->name,
                 'email' => optional($order->customer)->email,
@@ -750,7 +750,7 @@ Route::post('/orders/sslcommerz-callback/secureurlasdfghjk/{order_id}/{status}',
             $order->payment_status_id = Order::PAYMENT_STATUS_UNPAID;
             $order->order_status_id = Order::ORDER_STATUS_CANCELED;
             $order->update();
-    
+
             $data = [
                 'name' => optional($order->customer)->name,
                 'email' => optional($order->customer)->email,

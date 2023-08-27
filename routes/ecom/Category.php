@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,5 +13,5 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/categories', [CategoryController::class, 'index']);
-Route::get('/categories/{id}/show', [CategoryController::class, 'show']);
+Route::get('/categories', 'CategoryController@index');
+Route::get('/categories/{id}/show', 'CategoryController@show');

@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\ComboController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,8 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
-Route::get('/combos', [ComboController::class, 'index']);
-Route::get('/combos/{id}/show', [ComboController::class, 'show']);
-Route::get('/combos/combo-categories/{comboCategoryId}', [ComboController::class, 'getByComboCategory']);
-Route::get('/combos/search', [ComboController::class, 'search']);
+Route::get('/combos', 'ComboController@index');
+Route::get('/combos/{id}/show', 'ComboController@show');
+Route::get('/combos/combo-categories/{comboCategoryId}', 'ComboController@getByComboCategory');
+Route::get('/combos/search', 'ComboController@search');

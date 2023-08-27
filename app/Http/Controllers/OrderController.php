@@ -8,6 +8,7 @@ use App\Models\OrderItem;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
@@ -18,7 +19,7 @@ class OrderController extends Controller
         try {
             $query = Order::query();
             $query->with('customer', 'paymentMethod', 'orderItems');
-            $query->where('customer_id', auth_customer('id'));
+            $query->where('customer_id', Auth::id());
             $query->orderBy('created_at', 'desc');
 
             $query->when($request->limit, function ($q) use ($request) {
@@ -62,7 +63,7 @@ class OrderController extends Controller
 
             $order = new Order();
             $order->order_date = Carbon::now();
-            $order->customer_id = auth_customer('id');
+            $order->customer_id = Auth::id();
             $order->shipping_address = $request->shipping_address;
             $order->billing_address = $request->billing_address;
             $order->sub_total = $request->sub_total;
@@ -200,7 +201,7 @@ class OrderController extends Controller
             // make order
             $order = new Order();
             $order->order_date = Carbon::now();
-            $order->customer_id = auth_customer('id');
+            $order->customer_id = Auth::id();
             $order->shipping_address = $request->shipping_address;
             $order->billing_address = $request->billing_address;
             $order->sub_total = $request->sub_total;
@@ -215,7 +216,7 @@ class OrderController extends Controller
             $order->save();
 
             $newlyCreatedOrderId = $order->id;
-            $customer = Customer::findOrFail(auth_customer('id'));
+            $customer = Customer::findOrFail(Auth::id());
             $productNames = '';
             $total = 0;
             foreach ($request->cart as $item) {
@@ -407,7 +408,7 @@ class OrderController extends Controller
                 return make_validation_error_response($validator->getMessageBag());
             }
 
-            $customer = Customer::findOrFail(auth_customer('id'));
+            $customer = Customer::findOrFail(Auth::id());
             $order = Order::findOrFail($order_id);
             $productNames = '';
 

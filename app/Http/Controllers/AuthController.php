@@ -89,7 +89,7 @@ class AuthController extends Controller
                 return make_validation_error_response($validator->getMessageBag());
             }
 
-            $customer = Customer::find(auth_customer('id'));
+            $customer = Customer::find(Auth::id());
             if (!$customer) throw new Exception("Customer not found!");
 
             if (Hash::check($request->current_password, $customer->password) === False) {

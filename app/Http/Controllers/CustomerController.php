@@ -6,6 +6,7 @@ use App\Models\Address;
 use App\Models\Customer;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 
@@ -50,7 +51,7 @@ class CustomerController extends Controller
                 return make_validation_error_response($validator->getMessageBag());
             }
 
-            $customer = Customer::findOrFail(auth_customer('id'));
+            $customer = Customer::findOrFail(Auth::id());
             $customer->name = $request->name;
             $customer->date_of_birth = $request->date_of_birth;
             $customer->gender = $request->gender;
@@ -80,7 +81,7 @@ class CustomerController extends Controller
     public function getAddresses()
     {
         try {
-            return Address::where('customer_id', auth_customer('id'))->paginate();
+            return Address::where('customer_id', Auth::id())->paginate();
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

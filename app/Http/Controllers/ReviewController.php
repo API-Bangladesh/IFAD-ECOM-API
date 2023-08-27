@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class ReviewController extends Controller
@@ -53,12 +54,12 @@ class ReviewController extends Controller
     public function checkInventoryReviewCapability($inventoryId)
     {
         try {
-            $exists = Order::where('customer_id', auth_customer('id'))
+            $exists = Order::where('customer_id', Auth::id())
                 ->whereHas('orderItems', function ($query) use ($inventoryId) {
                     $query->where('inventory_id', $inventoryId);
                 })->exists();
 
-            $exists2 = Review::where('customer_id', auth_customer('id'))
+            $exists2 = Review::where('customer_id', Auth::id())
                 ->where('inventory_id', $inventoryId)
                 ->exists();
 
@@ -85,7 +86,7 @@ class ReviewController extends Controller
     public function checkComboReviewCapability($comboId)
     {
         try {
-            $exists = Order::where('customer_id', auth_customer('id'))
+            $exists = Order::where('customer_id', Auth::id())
                 ->whereHas('orderItems', function ($query) use ($comboId) {
                     $query->where('combo_id', $comboId);
                 })->exists();
@@ -118,10 +119,10 @@ class ReviewController extends Controller
                 return make_validation_error_response($validator->getMessageBag());
             }
 
-            $isExists = Review::where('customer_id', auth_customer('id'))
+            $isExists = Review::where('customer_id', Auth::id())
                 ->where('inventory_id', $request->inventory_id)->exists();
 
-            $orIsExists = Review::where('customer_id', auth_customer('id'))
+            $orIsExists = Review::where('customer_id', Auth::id())
                 ->where('combo_id', $request->combo_id)->exists();
 
             if ($isExists || $orIsExists) {
@@ -131,7 +132,7 @@ class ReviewController extends Controller
             $review = new Review();
             $review->ratting_number = $request->ratting_number;
             $review->comments = $request->comments;
-            $review->customer_id = auth_customer('id');
+            $review->customer_id = Auth::id();
             $review->inventory_id = $request->inventory_id;
             $review->combo_id = $request->combo_id;
             $review->status = Review::STATUS_PENDING;

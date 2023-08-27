@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Address;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class AddressController extends Controller
@@ -13,7 +14,7 @@ class AddressController extends Controller
     {
         try {
             return Address::with(['division', 'district', 'upazila'])
-                ->where('customer_id', auth_customer('id'))
+                ->where('customer_id', Auth::id())
                 ->get();
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
@@ -23,7 +24,7 @@ class AddressController extends Controller
     public function show(Request $request, $id)
     {
         try {
-            return Address::where('customer_id', auth_customer('id'))->findOrFail($id);
+            return Address::where('customer_id', Auth::id())->findOrFail($id);
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }
@@ -58,7 +59,7 @@ class AddressController extends Controller
             $address->postcode = $request->postcode;
             $address->phone = $request->phone;
             $address->email = $request->email;
-            $address->customer_id = auth_customer('id');
+            $address->customer_id = Auth::id();
             $address->is_default_billing = null;
             $address->is_default_shipping = null;
             $address->save();
@@ -86,7 +87,7 @@ class AddressController extends Controller
                 return make_validation_error_response($validator->getMessageBag());
             }
 
-            $address = Address::where('customer_id', auth_customer('id'))->findOrFail($id);
+            $address = Address::where('customer_id', Auth::id())->findOrFail($id);
             $address->title = $request->title;
             $address->name = $request->name;
             $address->address_line_1 = $request->address_line_1;
@@ -108,7 +109,7 @@ class AddressController extends Controller
     public function destroy($id)
     {
         try {
-            $address = Address::where('customer_id', auth_customer('id'))->findOrFail($id);
+            $address = Address::where('customer_id', Auth::id())->findOrFail($id);
 
             if ($address) {
                 $address->delete();
@@ -128,7 +129,7 @@ class AddressController extends Controller
                 $address->update();
             });
 
-            $address = Address::where('customer_id', auth_customer('id'))->findOrFail($id);
+            $address = Address::where('customer_id', Auth::id())->findOrFail($id);
             $address->is_default_shipping = '1';
             $address->update();
 
@@ -146,7 +147,7 @@ class AddressController extends Controller
                 $address->update();
             });
 
-            $address = Address::where('customer_id', auth_customer('id'))->findOrFail($id);
+            $address = Address::where('customer_id', Auth::id())->findOrFail($id);
             $address->is_default_billing = '1';
             $address->update();
 

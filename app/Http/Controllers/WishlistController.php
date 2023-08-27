@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class WishlistController extends Controller
@@ -12,7 +13,7 @@ class WishlistController extends Controller
     {
         try {
             $query = Wishlist::query();
-            $query->where('customer_id', auth_customer('id'));
+            $query->where('customer_id', Auth::id());
             $query->with('customer', 'inventory', 'combo');
 
             return $query->paginate($request->get('limit', 15));
@@ -48,7 +49,7 @@ class WishlistController extends Controller
                 return make_error_response("Already existed.");
             }
 
-            $wishlist = Wishlist::where('customer_id', auth_customer('id'))
+            $wishlist = Wishlist::where('customer_id', Auth::id())
                 ->where('inventory_id', $request->inventory_id)->first();
 
             if ($wishlist) {
@@ -60,7 +61,7 @@ class WishlistController extends Controller
             }
 
             Wishlist::create([
-                'customer_id' => auth_customer('id'),
+                'customer_id' => Auth::id(),
                 'inventory_id' => $request->inventory_id
             ]);
 
@@ -75,7 +76,7 @@ class WishlistController extends Controller
     public function getInventoryStatus(Request $request, $inventoryId)
     {
         try {
-            $wishlist = Wishlist::where('customer_id', auth_customer('id'))
+            $wishlist = Wishlist::where('customer_id', Auth::id())
                 ->where('inventory_id', $inventoryId)->first();
 
             if ($wishlist) {

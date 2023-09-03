@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
 // Get reviews
 Route::get('/reviews', 'ReviewController@index');
 Route::get('/reviews/inventories/{inventoryId}', 'ReviewController@getReviewsByInventory');

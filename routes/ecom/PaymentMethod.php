@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\PaymentMethod;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,20 +13,5 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
-Route::get('/payment-methods', function (Request $request) {
-    try {
-        return PaymentMethod::where('status', PaymentMethod::STATUS_ACTIVE)->get();
-    } catch (Exception $exception) {
-        return make_error_response($exception->getMessage());
-    }
-});
-
-
-Route::get('/payment-methods/{id}/show', function ($id) {
-    try {
-        return PaymentMethod::findOrFail($id);
-    } catch (Exception $exception) {
-        return make_error_response($exception->getMessage());
-    }
-});
+Route::get('/payment-methods', 'PaymentMethodController@index');
+Route::get('/payment-methods/{id}/show', 'PaymentMethodController@show');

@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
+use App\Models\District;
 use Exception;
 use Illuminate\Http\Request;
 
-class CategoryController extends Controller
+class DistrictController extends Controller
 {
     public function index(Request $request)
     {
         try {
-            $query = Category::query();
-            $query->where('status', Category::STATUS_ACTIVE);
+            $query = District::query();
 
             $query->when($request->limit, function ($q) use ($request) {
                 $q->limit($request->limit);
@@ -28,10 +27,21 @@ class CategoryController extends Controller
         }
     }
 
-    public function show($id)
+    public function getDistrictsByDivision(Request $request, $division_id)
     {
         try {
-            return Category::findOrFail($id);
+            $query = District::query();
+            $query->where('division_id', $division_id);
+
+            $query->when($request->limit, function ($q) use ($request) {
+                $q->limit($request->limit);
+            });
+
+            if ($request->paginate === 'yes') {
+                return $query->paginate($request->get('limit', 15));
+            } else {
+                return $query->get();
+            }
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

@@ -2,7 +2,6 @@
 
 use App\Models\Order;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * @return array[]
@@ -165,23 +164,6 @@ function make_validation_error_response($errors = [], $message = 'The given data
     }
 
     return response()->json($response, $code);
-}
-
-/**
- * @param $key
- * @return mixed
- */
-function auth_customer($key)
-{
-    $customer = null;
-    $token = request()->header('authorization');
-
-    if ($token) {
-        list($id) = explode('|', $token);
-        $customer = Cache::get('customer_' . $id);
-    }
-
-    return optional($customer)[$key];
 }
 
 /**

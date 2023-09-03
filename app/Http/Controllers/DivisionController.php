@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
+use App\Models\Division;
 use Exception;
 use Illuminate\Http\Request;
 
-class CategoryController extends Controller
+class DivisionController extends Controller
 {
     public function index(Request $request)
     {
         try {
-            $query = Category::query();
-            $query->where('status', Category::STATUS_ACTIVE);
+            $query = Division::query();
 
             $query->when($request->limit, function ($q) use ($request) {
                 $q->limit($request->limit);
@@ -23,15 +22,6 @@ class CategoryController extends Controller
             } else {
                 return $query->get();
             }
-        } catch (Exception $exception) {
-            return make_error_response($exception->getMessage());
-        }
-    }
-
-    public function show($id)
-    {
-        try {
-            return Category::findOrFail($id);
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

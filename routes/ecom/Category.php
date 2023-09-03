@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\Category;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,31 +13,5 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
-Route::get('/categories', function (Request $request) {
-    try {
-        $query = Category::query();
-        $query->where('status', Category::STATUS_ACTIVE);
-
-        $query->when($request->limit, function ($q) use ($request) {
-            $q->limit($request->limit);
-        });
-
-        if ($request->paginate === 'yes') {
-            return $query->paginate($request->get('limit', 15));
-        } else {
-            return $query->get();
-        }
-    } catch (Exception $exception) {
-        return make_error_response($exception->getMessage());
-    }
-});
-
-
-Route::get('/categories/{id}/show', function (Request $request, $id) {
-    try {
-        return Category::findOrFail($id);
-    } catch (Exception $exception) {
-        return make_error_response($exception->getMessage());
-    }
-});
+Route::get('/categories', 'CategoryController@index');
+Route::get('/categories/{id}/show', 'CategoryController@show');

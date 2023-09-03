@@ -87,19 +87,8 @@ $app->middleware([
  ]);
 
 $app->routeMiddleware([
-    'isCustomer' => App\Http\Middleware\IsCustomerMiddleware::class,
+    'auth' => App\Http\Middleware\JwtMiddleware::class,
 ]);
-
-// $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
-// ]);
-
-// $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class,
-// ]);
-
-$app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
-$app->register(Illuminate\Session\SessionServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -112,13 +101,19 @@ $app->register(Illuminate\Session\SessionServiceProvider::class);
 |
 */
 $app->register(App\Providers\AppServiceProvider::class);
-//$app->register(App\Providers\AuthServiceProvider::class);
+$app->register(App\Providers\AuthServiceProvider::class);
 //$app->register(App\Providers\EventServiceProvider::class);
 $app->register(\Illuminate\Mail\MailServiceProvider::class);
+$app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
+$app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
+$app->register(Illuminate\Session\SessionServiceProvider::class);
 
 $app->configure('database');
 $app->configure('session');
 $app->configure('mail');
+$app->configure('auth');
+$app->configure('jwt');
+$app->configure('cors');
 
 $app->alias('mail.manager', Illuminate\Mail\MailManager::class);
 $app->alias('mail.manager', Illuminate\Contracts\Mail\Factory::class);

@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use Exception;
+use App\Models\SubCategory;
 use Illuminate\Http\Request;
 
-class CategoryController extends Controller
+class SubCategoryController extends Controller
 {
     public function index(Request $request)
     {
         try {
-            $query = Category::query();
-            $query->where('status', Category::STATUS_ACTIVE);
+            $query = SubCategory::query();
 
             $query->when($request->limit, function ($q) use ($request) {
                 $q->limit($request->limit);
@@ -23,16 +21,16 @@ class CategoryController extends Controller
             } else {
                 return $query->get();
             }
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             return make_error_response($exception->getMessage());
         }
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
-            return Category::findOrFail($id);
-        } catch (Exception $exception) {
+            return SubCategory::findOrFail($id);
+        } catch (\Exception $exception) {
             return make_error_response($exception->getMessage());
         }
     }

@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
+use App\Models\ComboCategory;
 use Exception;
 use Illuminate\Http\Request;
 
-class CategoryController extends Controller
+class ComboCategoryController extends Controller
 {
     public function index(Request $request)
     {
         try {
-            $query = Category::query();
-            $query->where('status', Category::STATUS_ACTIVE);
+            $query = ComboCategory::query();
+            $query->where('status', ComboCategory::STATUS_ACTIVE);
 
             $query->when($request->limit, function ($q) use ($request) {
                 $q->limit($request->limit);
@@ -31,7 +31,7 @@ class CategoryController extends Controller
     public function show($id)
     {
         try {
-            return Category::findOrFail($id);
+            return ComboCategory::findOrFail($id);
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

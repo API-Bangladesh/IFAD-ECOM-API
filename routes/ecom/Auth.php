@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', 'AuthController@register');
 Route::post('/login', 'AuthController@login');
+Route::post('/forgot-password', 'AuthController@forgotPassword');
+Route::post('/reset-password', 'AuthController@resetPassword');
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::put('/change-password', 'AuthController@changePassword');

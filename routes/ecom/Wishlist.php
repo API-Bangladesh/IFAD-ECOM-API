@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group(['middleware' => 'auth:api'], function () {
+Route::group(['middleware' => ['auth:api', 'verified']], function () {
     Route::get('/wishlist', 'WishlistController@index');
     Route::get('/wishlist/{id}/show', 'WishlistController@show');
     Route::post('/wishlist/sync', 'WishlistController@sync');

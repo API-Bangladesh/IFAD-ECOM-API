@@ -18,7 +18,10 @@ Route::post('/login', 'AuthController@login');
 Route::post('/forgot-password', 'AuthController@forgotPassword');
 Route::post('/reset-password', 'AuthController@resetPassword');
 
-Route::group(['middleware' => 'auth:api'], function () {
+Route::group(['middleware' => ['auth:api']], function () {
+    Route::post('/verification-notification', 'AuthController@verificationNotificationLink');
+    Route::post('/verify-email/{token}', 'AuthController@verifyEmail');
+
     Route::put('/change-password', 'AuthController@changePassword');
     Route::post('/logout', 'AuthController@logout');
 });

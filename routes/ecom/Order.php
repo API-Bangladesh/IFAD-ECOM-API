@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group(['middleware' => 'auth:api'], function () {
+Route::group(['middleware' => ['auth:api', 'verified']], function () {
     Route::get('/orders', 'OrderController@index');
     Route::get('/orders/{id}/show', 'OrderController@show');
     Route::post('/orders', 'OrderController@store');

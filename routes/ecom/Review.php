@@ -20,7 +20,7 @@ Route::get('/inventories/{inventoryId}/reviews/ability', 'ReviewController@check
 Route::get('/combos/{comboId}/reviews/ability', 'ReviewController@checkComboReviewCapability');
 
 // Authenticated routes
-Route::group(['middleware' => 'auth:api'], function () {
+Route::group(['middleware' => ['auth:api', 'verified']], function () {
     Route::post('/reviews', 'ReviewController@store');
     Route::get('/reviews/{id}/show', 'ReviewController@show');
     Route::delete('/reviews/{id}', 'ReviewController@destroy');

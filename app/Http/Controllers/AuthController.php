@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Mail\SendPasswordResetLink;
+use App\Mail\SendVerificationNotificationLink;
+use App\Mail\SendVerifiedEmailNotification;
 use App\Models\Customer;
 use Exception;
 use Illuminate\Http\Request;
@@ -64,8 +66,14 @@ class AuthController extends Controller
 
             $credentials = $request->only(['email', 'password']);
 
-            if (!$token = Auth::attempt($credentials, $request->remember)) {
-                return response()->json(['message' => 'Unauthorized'], 401);
+            if ($request->remember) {
+                if (!$token = Auth::attempt($credentials, true)) {
+                    return response()->json(['message' => 'Unauthorized'], 401);
+                }
+            } else {
+                if (!$token = Auth::attempt($credentials)) {
+                    return response()->json(['message' => 'Unauthorized'], 401);
+                }
             }
 
             return make_success_response("Login successfully.", [
@@ -179,15 +187,56 @@ class AuthController extends Controller
         }
     }
 
-    private function createToken()
+    public function createToken()
     {
         return base64_encode(md5('ifadeshop' . date('H')));
     }
 
-    private function matchToken($token)
+    public function matchToken($token)
     {
         if (md5('ifadeshop' . date('H')) != base64_decode($token)) {
             throw new Exception("Token doesn't match!");
         }
+    }
+
+    public function verificationNotificationLink(Request $request)
+    {
+        try {
+            $email = $request->user()->email;
+            $token = $this->createToken();
+
+            $url = config('app.frontend_url') . "/auth/verify-email/{$token}";
+
+            Mail::to($email)->send(new SendVerificationNotificationLink($url));
+        } catch (\Exception $exception) {
+            report($exception);
+
+            return make_success_response($exception->getMessage());
+        }
+
+        return make_success_response("Verification email sent. Please check your email.");
+    }
+
+    public function verifyEmail(Request $request, $token)
+    {
+        try {
+            $this->matchToken($token);
+
+            $email = $request->user()->email;
+
+            $customer = Customer::where('email', $email)->first();
+            if (!$customer) throw new Exception("Customer not found!");
+
+            $customer->email_verified_at = now();
+            $customer->update();
+
+            Mail::to($email)->send(new SendVerifiedEmailNotification());
+        } catch (\Exception $exception) {
+            report($exception);
+
+            return make_success_response($exception->getMessage());
+        }
+
+        return make_success_response("Your email is verified.");
     }
 }

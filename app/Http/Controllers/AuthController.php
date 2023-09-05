@@ -20,7 +20,7 @@ class AuthController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'name' => ['required'],
-                'email' => ['required'],
+                'email' => ['required', 'email', 'unique:customers,email'],
                 'password' => 'required|min:6|confirmed',
                 'password_confirmation' => 'required|min:6',
                 'agree' => ['required'],

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group(['middleware' => 'auth:api'], function () {
+Route::group(['middleware' => ['auth:api', 'verified']], function () {
     Route::get('/customers', 'CustomerController@index');
     Route::get('/customers/{id}/show', 'CustomerController@show');
     Route::put('/customers', 'CustomerController@update');

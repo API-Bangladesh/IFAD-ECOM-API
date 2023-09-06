@@ -144,7 +144,11 @@ class InventoryController extends Controller
                 $query->limit($request->limit);
             });
 
-            return $query->paginate();
+            if ($request->paginate === 'yes') {
+                return $query->paginate($request->get('limit', 15));
+            } else {
+                return $query->get();
+            }
         } catch (Exception $exception) {
             return make_error_response($exception->getMessage());
         }

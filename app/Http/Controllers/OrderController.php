@@ -50,7 +50,9 @@ class OrderController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'shipping_address' => ['required'],
+                'shipping_address_json' => ['required'],
                 'billing_address' => ['required'],
+                'billing_address_json' => ['required'],
                 'payment_method_id' => ['required'],
                 'cart' => ['required'],
                 'sub_total' => ['required'],
@@ -65,7 +67,9 @@ class OrderController extends Controller
             $order->order_date = Carbon::now();
             $order->customer_id = Auth::id();
             $order->shipping_address = $request->shipping_address;
+            $order->shipping_address_json = $request->shipping_address_json;
             $order->billing_address = $request->billing_address;
+            $order->billing_address_json = $request->billing_address_json;
             $order->sub_total = $request->sub_total;
             $order->discount = $request->discount;
             $order->shipping_charge = $request->shipping_charge;
@@ -187,7 +191,9 @@ class OrderController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'shipping_address' => ['required'],
+                'shipping_address_json' => ['required'],
                 'billing_address' => ['required'],
+                'billing_address_json' => ['required'],
                 'payment_method_id' => ['required'],
                 'cart' => ['required'],
                 'sub_total' => ['required'],
@@ -203,7 +209,9 @@ class OrderController extends Controller
             $order->order_date = Carbon::now();
             $order->customer_id = Auth::id();
             $order->shipping_address = $request->shipping_address;
+            $order->shipping_address_json = $request->shipping_address_json;
             $order->billing_address = $request->billing_address;
+            $order->billing_address_json = $request->billing_address_json;
             $order->sub_total = $request->sub_total;
             $order->discount = $request->discount;
             $order->shipping_charge = $request->shipping_charge;

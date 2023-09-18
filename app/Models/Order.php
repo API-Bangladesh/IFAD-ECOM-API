@@ -26,6 +26,11 @@ class Order extends Model
 
     protected $fillable = [];
 
+    protected $casts = [
+        'shipping_address_json' => 'object',
+        'billing_address_json' => 'object',
+    ];
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

@@ -115,6 +115,7 @@ $app->configure('mail');
 $app->configure('auth');
 $app->configure('jwt');
 $app->configure('cors');
+$app->configure('services');
 
 $app->alias('mail.manager', Illuminate\Mail\MailManager::class);
 $app->alias('mail.manager', Illuminate\Contracts\Mail\Factory::class);

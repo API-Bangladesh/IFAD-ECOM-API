@@ -48,8 +48,7 @@ class GoogleSocialLogin extends Controller
 
             $code = $request->input('code');
 
-            $tokenResponse = Http::withOptions(["verify" => false])
-                ->post(config('services.google.token_uri'), [
+            $tokenResponse = Http::post(config('services.google.token_uri'), [
                     'code' => $code,
                     'client_id' => config('services.google.client_id'),
                     'client_secret' => config('services.google.client_secret'),
@@ -59,8 +58,7 @@ class GoogleSocialLogin extends Controller
 
             $accessToken = $tokenResponse->json('access_token');
 
-            $customerResponse = Http::withOptions(["verify" => false])
-                ->withHeaders([
+            $customerResponse = Http::withHeaders([
                     'Authorization' => 'Bearer ' . urlencode($accessToken),
                 ])
                 ->get(config('services.google.userinfo_uri'));

@@ -15,9 +15,9 @@ return [
     */
 
     'google' => [
-        'client_id' => env('GOOGLE_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'redirect_uri' => env('GOOGLE_REDIRECT_URI'),
+        'client_id' => env('GOOGLE_CLIENT_ID', ''),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET', ''),
+        'redirect_uri' => env('GOOGLE_REDIRECT_URI', ''),
         'auth_uri' => 'https://accounts.google.com/o/oauth2/auth',
         'token_uri' => 'https://oauth2.googleapis.com/token',
         'userinfo_uri' => 'https://www.googleapis.com/oauth2/v3/userinfo',

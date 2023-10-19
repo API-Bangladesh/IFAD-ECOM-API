@@ -23,7 +23,8 @@ class Customer extends Model implements AuthenticatableContract, AuthorizableCon
         'name',
         'email',
         'password',
-        'token'
+        'token',
+        'email_verified_at'
     ];
 
     protected $hidden = [

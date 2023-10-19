@@ -25,3 +25,9 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::put('/change-password', 'AuthController@changePassword');
     Route::post('/logout', 'AuthController@logout');
 });
+
+/**
+ * Social Login
+ */
+
+include "social-login/Google.php";

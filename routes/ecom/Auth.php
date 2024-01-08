@@ -18,6 +18,9 @@ Route::post('/login', 'AuthController@login');
 Route::post('/forgot-password', 'AuthController@forgotPassword');
 Route::post('/reset-password', 'AuthController@resetPassword');
 
+Route::post('/send-otp', 'AuthController@sendOtp');
+Route::post('/verify-otp', 'AuthController@verifyOtp');
+
 Route::group(['middleware' => ['auth:api']], function () {
     Route::post('/verification-notification', 'AuthController@verificationNotificationLink');
     Route::post('/verify-email/{token}', 'AuthController@verifyEmail');

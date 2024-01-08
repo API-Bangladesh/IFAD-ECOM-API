@@ -15,6 +15,8 @@
 
 //product Category List
 
+use Illuminate\Http\Request;
+
 $router->get('/', function () {
     return 'API Server';
 });
@@ -111,6 +113,51 @@ $router->get('/menus', 'ModuleController@menus');
 $router->post('/send-email', 'MailController@sendEmail');
 //product Search
 $router->get('/search/{name}', 'SearchController@Search');
+
+$router->get('/facebook/auth', function () {
+    $fb = new \Facebook\Facebook([
+        'app_id' => '395302542958449',
+        'app_secret' => '53d2219f068d9803744e3c5b240600c1',
+        'default_graph_version' => 'v2.5',
+    ]);
+
+    $helper = $fb->getRedirectLoginHelper();
+    $permissions = ['email', 'user_birthday'];
+
+    return $helper->getLoginUrl('http://localhost/facebook-login-using-php/', $permissions);
+});
+
+$router->get('/facebook/callback', function (Request $request) {
+    $fb = new Facebook\Facebook([
+        'app_id' => '395302542958449', // your app id
+        'app_secret' => '53d2219f068d9803744e3c5b240600c1', // your app secret
+        'default_graph_version' => 'v2.5',
+    ]);
+
+    $helper = $fb->getRedirectLoginHelper();
+
+    try {
+        $accessToken = $helper->getAccessToken();
+    } catch (Exception $exception) {
+        throw $exception;
+    }
+
+    if (isset($accessToken)) {
+        $oAuth2Client = $fb->getOAuth2Client();
+        $longLivedAccessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
+        $fb->setDefaultAccessToken($longLivedAccessToken);
+    }
+
+    try {
+        $profile_request = $fb->get('/me?fields=name,first_name,last_name,email');
+        $profile = $profile_request->getGraphUser();
+        $fbid = $profile->getProperty('id');
+        $fbfullname = $profile->getProperty('name');
+        $fbemail = $profile->getProperty('email');
+    } catch (Exception $exception) {
+        throw $exception;
+    }
+});
 
 /*Ecom*/
 $router->group(['prefix' => 'ecom'], function () use ($router) {

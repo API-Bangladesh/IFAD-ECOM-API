@@ -10,8 +10,11 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -21,6 +24,7 @@ class AuthController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => ['required'],
                 'email' => ['required', 'email', 'unique:customers,email'],
+                'phone' => ['nullable', 'string', 'unique:customers,phone'],
                 'password' => 'required|min:6|confirmed',
                 'password_confirmation' => 'required|min:6',
                 'agree' => ['required'],
@@ -33,6 +37,7 @@ class AuthController extends Controller
             $customer = new Customer();
             $customer->name = $request->name;
             $customer->email = $request->email;
+            $customer->phone = $request->phone;
             $customer->password = Hash::make($request->password);
             $customer->save();
 
@@ -56,7 +61,7 @@ class AuthController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'email' => ['required', 'email'],
+                'email' => ['required'],
                 'password' => ['required'],
             ]);
 
@@ -64,7 +69,13 @@ class AuthController extends Controller
                 return make_validation_error_response($validator->getMessageBag());
             }
 
-            $credentials = $request->only(['email', 'password']);
+            $loginType = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+
+            // $credentials = $request->only(['email', 'password']);
+            $credentials = [
+                $loginType => $request->email,
+                'password' => $request->password
+            ];
 
             if ($request->remember) {
                 if (!$token = Auth::attempt($credentials, true)) {
@@ -238,5 +249,82 @@ class AuthController extends Controller
         }
 
         return make_success_response("Your email is verified.");
+    }
+
+    public function sendOtp(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'phone' => ['required']
+            ]);
+
+            if ($validator->fails()) {
+                return make_validation_error_response($validator->getMessageBag());
+            }
+
+            $validated = $validator->validated();
+
+            $customer = Customer::where('phone', $validated['phone'])->first();
+            if (!$customer) {
+                return make_error_response('Customer not found.');
+            }
+
+            Session::put('otp', rand(1111, 9999));
+
+            // Mail::to($email)->send(new SendVerifiedEmailNotification());
+
+            return make_success_response("OTP code sent.", [
+                'otp' => Session::get('otp')
+            ]);
+        } catch (\Exception $exception) {
+            report($exception);
+
+            return make_success_response($exception->getMessage());
+        }
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'phone' => ['required'],
+                'otp' => ['required'],
+            ]);
+
+            if ($validator->fails()) {
+                return make_validation_error_response($validator->getMessageBag());
+            }
+
+            $validated = $validator->validated();
+
+            Log::info(Session::get('otp'));
+            Log::info($validated['otp']);
+
+            if (Session::get('otp') != $validated['otp']) {
+                return make_error_response("OTP not match.");
+            }
+
+            $customer = Customer::where('phone', $validated['phone'])->first();
+            if (!$customer) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            Auth::login($customer, $request->filled('remember'));
+
+            $token = JWTAuth::fromUser($customer);
+            if (!$token) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            return make_success_response("Login successfully.", [
+                'token' => 'Bearer ' . $token,
+                'customer' => auth()->user(),
+                'expires_in' => auth()->factory()->getTTL() * 60 * 24,
+            ]);
+        } catch (\Exception $exception) {
+            report($exception);
+
+            return make_success_response($exception->getMessage());
+        }
     }
 }

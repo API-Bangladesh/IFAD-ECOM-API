@@ -48,25 +48,26 @@ class GoogleSocialLogin extends Controller
 
             $code = $request->input('code');
 
-            $tokenResponse = Http::post(config('services.google.token_uri'), [
-                    'code' => $code,
-                    'client_id' => config('services.google.client_id'),
-                    'client_secret' => config('services.google.client_secret'),
-                    'redirect_uri' => config('services.google.redirect_uri'),
-                    'grant_type' => 'authorization_code',
-                ]);
+            $tokenResponse = Http::withOptions([
+                'verify' => env('APP_ENV') === 'production'
+            ])->post(config('services.google.token_uri'), [
+                'code' => $code,
+                'client_id' => config('services.google.client_id'),
+                'client_secret' => config('services.google.client_secret'),
+                'redirect_uri' => config('services.google.redirect_uri'),
+                'grant_type' => 'authorization_code',
+            ]);
 
-            $accessToken = $tokenResponse->json('access_token');
+            $accessToken = optional($tokenResponse)['access_token'];
 
             $customerResponse = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . urlencode($accessToken),
-                ])
-                ->get(config('services.google.userinfo_uri'));
+                'Authorization' => 'Bearer ' . urlencode($accessToken),
+            ])->withOptions([
+                'verify' => env('APP_ENV') === 'production'
+            ])->get(config('services.google.userinfo_uri'));
 
-            $customerData = $customerResponse->json();
-
-            $name = $customerData['name'];
-            $email = $customerData['email'];
+            $name = optional($customerResponse)['name'];
+            $email = optional($customerResponse)['email'];
 
             $customer = Customer::where('email', $email)->first();
 

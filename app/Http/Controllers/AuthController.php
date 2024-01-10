@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SendOtpEmailNotification;
 use App\Mail\SendPasswordResetLink;
 use App\Mail\SendVerificationNotificationLink;
 use App\Mail\SendVerifiedEmailNotification;
@@ -10,9 +11,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -24,14 +23,14 @@ class AuthController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => ['required'],
                 'email' => ['required', 'email', 'unique:customers,email'],
-                'phone' => ['nullable', 'string', 'unique:customers,phone'],
+                'phone' => ['required', 'string', 'unique:customers,phone'],
                 'password' => 'required|min:6|confirmed',
                 'password_confirmation' => 'required|min:6',
                 'agree' => ['required'],
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $customer = new Customer();
@@ -66,7 +65,7 @@ class AuthController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $loginType = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
@@ -107,7 +106,7 @@ class AuthController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $customer = Customer::find(Auth::id());
@@ -135,7 +134,7 @@ class AuthController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_error_response($validator->getMessageBag());
+                return make_error_response($validator->errors());
             }
 
             // Set Frontend URL
@@ -164,7 +163,7 @@ class AuthController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_error_response($validator->getMessageBag());
+                return make_error_response($validator->errors());
             }
 
             // Match
@@ -251,7 +250,11 @@ class AuthController extends Controller
         return make_success_response("Your email is verified.");
     }
 
-    public function sendOtp(Request $request)
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function sendOtpViaPhone(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -259,23 +262,19 @@ class AuthController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $validated = $validator->validated();
 
             $customer = Customer::where('phone', $validated['phone'])->first();
             if (!$customer) {
-                return make_error_response('Customer not found.');
+                $customer = new Customer();
+                $customer->phone = $validated['phone'];
+                $customer->save();
             }
 
-            Session::put('otp', rand(1111, 9999));
-
-            // Mail::to($email)->send(new SendVerifiedEmailNotification());
-
-            return make_success_response("OTP code sent.", [
-                'otp' => Session::get('otp')
-            ]);
+            return make_success_response("Password login process.");
         } catch (\Exception $exception) {
             report($exception);
 
@@ -283,30 +282,31 @@ class AuthController extends Controller
         }
     }
 
-    public function verifyOtp(Request $request)
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function verifyOtpViaPhone(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
                 'phone' => ['required'],
-                'otp' => ['required'],
+                'otp' => ['required', 'numeric'],
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $validated = $validator->validated();
 
-            Log::info(Session::get('otp'));
-            Log::info($validated['otp']);
-
-            if (Session::get('otp') != $validated['otp']) {
-                return make_error_response("OTP not match.");
-            }
-
             $customer = Customer::where('phone', $validated['phone'])->first();
             if (!$customer) {
                 return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            if ($validated['otp'] != $customer->otp) {
+                return make_error_response("OTP not match.");
             }
 
             Auth::login($customer, $request->filled('remember'));
@@ -315,6 +315,145 @@ class AuthController extends Controller
             if (!$token) {
                 return response()->json(['message' => 'Unauthorized'], 401);
             }
+
+            $customer->email_verified_at = $customer->email_verified_at ?: now();
+            $customer->otp = null;
+            $customer->update();
+
+            return make_success_response("Login successfully.", [
+                'token' => 'Bearer ' . $token,
+                'customer' => auth()->user(),
+                'expires_in' => auth()->factory()->getTTL() * 60 * 24,
+            ]);
+        } catch (\Exception $exception) {
+            report($exception);
+
+            return make_success_response($exception->getMessage());
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function verifyPasswordWithPhone(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'phone' => ['required'],
+                'password' => ['required'],
+            ]);
+
+            if ($validator->fails()) {
+                return make_validation_error_response($validator->errors());
+            }
+
+            $validated = $validator->validated();
+
+            $customer = Customer::where('phone', $validated['phone'])->first();
+            if (!$customer) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            if (Hash::check($validated['password'], $customer->password)) {
+                return make_error_response("Password not match.");
+            }
+
+            Auth::login($customer, $request->filled('remember'));
+
+            $token = JWTAuth::fromUser($customer);
+            if (!$token) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            return make_success_response("Login successfully.", [
+                'token' => 'Bearer ' . $token,
+                'customer' => auth()->user(),
+                'expires_in' => auth()->factory()->getTTL() * 60 * 24,
+            ]);
+        } catch (\Exception $exception) {
+            report($exception);
+
+            return make_success_response($exception->getMessage());
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function sendOtpViaEmail(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => ['required', 'email']
+            ]);
+
+            if ($validator->fails()) {
+                return make_validation_error_response($validator->errors());
+            }
+
+            $validated = $validator->validated();
+
+            $customer = Customer::where('email', $validated['email'])->first();
+            if (!$customer) {
+                $customer = new Customer();
+                $customer->email = $validated['email'];
+                $customer->save();
+            }
+
+            $otp = rand(1111, 9999);
+
+            $customer->otp = $otp;
+            $customer->update();
+
+            Mail::to($customer->email)->send(new SendOtpEmailNotification($otp));
+
+            return make_success_response("OTP code sent to email.");
+        } catch (\Exception $exception) {
+            report($exception);
+
+            return make_success_response($exception->getMessage());
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function verifyOtpViaEmail(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'email' => ['required', 'email'],
+                'otp' => ['required', 'numeric'],
+            ]);
+
+            if ($validator->fails()) {
+                return make_validation_error_response($validator->errors());
+            }
+
+            $validated = $validator->validated();
+
+            $customer = Customer::where('email', $validated['email'])->first();
+            if (!$customer) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            if ($customer->otp != $validated['otp']) {
+                return make_error_response("OTP not match.");
+            }
+
+            Auth::login($customer, $request->filled('remember'));
+
+            $token = JWTAuth::fromUser($customer);
+            if (!$token) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            $customer->email_verified_at = $customer->email_verified_at ?: now();
+            $customer->otp = null;
+            $customer->update();
 
             return make_success_response("Login successfully.", [
                 'token' => 'Bearer ' . $token,

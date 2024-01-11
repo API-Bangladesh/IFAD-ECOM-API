@@ -159,6 +159,11 @@ $router->get('/facebook/callback', function (Request $request) {
     }
 });
 
+$router->get('/sms', function () {
+
+    return send_sms('37W93uOeXs39U1c327uwJfF3gsqQ8Uv4d9ZKMzFX', 71126, 8801676717945);
+});
+
 /*Ecom*/
 $router->group(['prefix' => 'ecom'], function () use ($router) {
     $router->get('/', function () {

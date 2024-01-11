@@ -58,10 +58,6 @@ $app->singleton('session.store', function () use ($app) {
     return $app->loadComponent('session', Illuminate\Session\SessionServiceProvider::class, 'session.store');
 });
 
-$app->bind('banglalink', function ($app) {
-    return new BanglalinkService($app['config']->get('banglalink'));
-});
-
 /*
 |--------------------------------------------------------------------------
 | Register Config Files
@@ -114,7 +110,6 @@ $app->register(\Illuminate\Mail\MailServiceProvider::class);
 $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 $app->register(Illuminate\Session\SessionServiceProvider::class);
-$app->register(Shipu\BanglalinkSmsGateway\Providers\BanglalinkSmsGatewayServiceProvider::class);
 
 $app->configure('database');
 $app->configure('session');

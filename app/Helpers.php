@@ -2,7 +2,6 @@
 
 use App\Models\Order;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Http;
 
 /**
  * @return array[]
@@ -174,21 +173,4 @@ function make_validation_error_response($errors = [], $message = 'The given data
 function now($timezone = null)
 {
     return Carbon::now($timezone);
-}
-
-function send_sms($api_key, $msg, $to)
-{
-    $response = Http::withOptions([
-        'verify' => false
-    ])->get('https://api.sms.net.bd/sendsms', [
-        'form_params' => [
-            'api_key' => $api_key,
-            'msg' => $msg,
-            'to' => $to,
-        ],
-    ]);
-
-    \Illuminate\Support\Facades\Log::info($response);
-
-    return $response->json();
 }

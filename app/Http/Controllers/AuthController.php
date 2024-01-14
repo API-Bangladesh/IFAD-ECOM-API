@@ -274,7 +274,16 @@ class AuthController extends Controller
                 $customer->save();
             }
 
-            return make_success_response("Password login process.");
+            $otp = rand(1111, 9999);
+
+            $customer->otp = $otp;
+            $customer->update();
+
+            // Mail::to($customer->email)->send(new SendOtpEmailNotification($otp));
+
+            return make_success_response("Password login process.", [
+                'opt' => $otp
+            ]);
         } catch (\Exception $exception) {
             report($exception);
 

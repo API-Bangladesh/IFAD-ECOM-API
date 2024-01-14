@@ -39,7 +39,7 @@ class WishlistController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $isExists = Wishlist::where('customer_id', $request->customer_id)

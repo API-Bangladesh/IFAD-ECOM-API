@@ -3,7 +3,6 @@
 namespace App\Providers;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\ServiceProvider;
-use App\Http\Resources\ProductResource;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,8 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
-
+        app('translator')->setLocale(config('app.locale'));
     }
     public function boot()
     {

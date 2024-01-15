@@ -23,7 +23,7 @@ class CommonController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $data = [
@@ -63,7 +63,7 @@ class CommonController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $data = [

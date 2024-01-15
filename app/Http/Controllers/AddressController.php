@@ -45,7 +45,7 @@ class AddressController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $address = new Address();
@@ -84,7 +84,7 @@ class AddressController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $address = Address::where('customer_id', Auth::id())->findOrFail($id);

@@ -48,7 +48,7 @@ class CustomerController extends Controller
             $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $customer = Customer::findOrFail(Auth::id());

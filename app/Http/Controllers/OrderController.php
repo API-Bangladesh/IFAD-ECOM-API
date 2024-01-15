@@ -60,7 +60,7 @@ class OrderController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $order = new Order();
@@ -137,7 +137,7 @@ class OrderController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             app('db')->transaction(function () use ($id, $request) {
@@ -201,7 +201,7 @@ class OrderController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             // make order
@@ -413,7 +413,7 @@ class OrderController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $customer = Customer::findOrFail(Auth::id());
@@ -550,7 +550,7 @@ class OrderController extends Controller
                 // ]);
 
                 // if ($validator->fails()) {
-                //     return make_validation_error_response($validator->getMessageBag());
+                //     return make_validation_error_response($validator->errors());
                 // }
 
                 $valId = urlencode($_POST['val_id']);

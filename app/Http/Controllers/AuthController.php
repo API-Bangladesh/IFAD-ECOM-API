@@ -14,6 +14,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use GuzzleHttp\Client;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Config;
+use function generateRandomClientTransId;
+use function generateRandomOTP;
+use function makeHttpRequest;
 
 class AuthController extends Controller
 {
@@ -256,6 +262,7 @@ class AuthController extends Controller
      */
     public function sendOtpViaPhone(Request $request)
     {
+
         try {
             $validator = Validator::make($request->all(), [
                 'phone' => ['required']
@@ -274,16 +281,52 @@ class AuthController extends Controller
                 $customer->save();
             }
 
-            $otp = rand(1111, 9999);
+            //$otp = rand(1111, 9999);
 
+            $otp = generateRandomOTP();
             $customer->otp = $otp;
             $customer->update();
 
-            // Mail::to($customer->email)->send(new SendOtpEmailNotification($otp));
+            //sms integration function start
 
-            return make_success_response("Password login process.", [
-                'opt' => $otp
-            ]);
+            //evn file config
+            $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+            $username = Config::get('app.banglalink_sms_username');
+            $password = Config::get('app.banglalink_sms_password');
+            $apiCode = Config::get('app.banglalink_sms_apicode');
+            $cli = Config::get('app.banglalink_sms_cli');
+
+
+            //request body
+
+            $requestData = [
+                'username' => $username,
+                'password' => $password,
+                'apicode' => $apiCode,
+                'msisdn' => [$customer->phone],
+                'countrycode' => '880',
+                'cli' => $cli,
+                'messagetype' => '1',
+                'message' => $customer->otp,
+                'clienttransid' => generateRandomClientTransId(),
+                'bill_msisdn' => $cli,
+                'tran_type' => 'P',
+                'request_type' => 'B',
+                'rn_code' => '91',
+            ];
+
+            $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+            if ($httpResponse['success']) {
+                // Process the response as needed
+                return response()->json(['success' => true, 'response' => $httpResponse['response']]);
+            } else {
+                // Handle exceptions
+                return response()->json(['success' => false, 'error' => $httpResponse['error']]);
+            }
+
+            //sms integration function end
+
         } catch (\Exception $exception) {
             report($exception);
 

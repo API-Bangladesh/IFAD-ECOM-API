@@ -2,6 +2,7 @@
 
 use App\Models\Order;
 use Illuminate\Support\Carbon;
+use GuzzleHttp\Client;
 
 /**
  * @return array[]
@@ -173,4 +174,45 @@ function make_validation_error_response($errors = [], $message = 'The given data
 function now($timezone = null)
 {
     return Carbon::now($timezone);
+}
+
+#sms integration random number
+if (!function_exists('generateRandomClientTransId')) {
+    function generateRandomClientTransId($length = 15) {
+        return \Illuminate\Support\Str::random($length);
+    }
+}
+
+//random number generate
+if (!function_exists('generateRandomOTP')) {
+    function generateRandomOTP() {
+        return rand(1111, 9999);
+    }
+}
+
+if (!function_exists('makeHttpRequest')) {
+    function makeHttpRequest($method, $url, $data = []) {
+        try {
+            $client = new Client();
+
+            $options = [
+                'json' => $data,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ];
+
+            $response = $client->request($method, $url, $options);
+
+            return [
+                'success' => true,
+                'response' => $response->getBody()->getContents(),
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
 }

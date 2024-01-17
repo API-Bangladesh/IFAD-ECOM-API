@@ -23,7 +23,7 @@ Route::post('/verify-otp-via-email', 'AuthController@verifyOtpViaEmail');
 
 Route::post('/send-otp-via-phone', 'AuthController@sendOtpViaPhone');
 Route::post('/verify-otp-via-phone', 'AuthController@verifyOtpViaPhone');
-Route::post('/verify-password-with-phone', 'AuthController@verifyPasswordWithPhone');
+Route::post('/verify-password-with-phone', 'AuthController@login');
 
 Route::group(['middleware' => ['auth:api']], function () {
     Route::post('/verification-notification', 'AuthController@verificationNotificationLink');

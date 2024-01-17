@@ -60,7 +60,6 @@ class AuthController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'email' => ['required'],
                 'password' => ['required'],
             ]);
 
@@ -68,19 +67,27 @@ class AuthController extends Controller
                 return make_validation_error_response($validator->errors());
             }
 
-            $loginType = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+            $email = $request->input('email');
+            $request->input('phone');
 
-            // $credentials = $request->only(['email', 'password']);
-            $credentials = [
-                $loginType => $request->email,
-                'password' => $request->password
-            ];
+            if ($email) {
+                $credentials = $request->only(['email', 'password']);
+            } else {
+                $credentials = $request->only(['phone', 'password']);
+            }
+
+
+
+            //$credentials = $request->only(['email', 'password']);
+
+
 
             if ($request->remember) {
                 if (!$token = Auth::attempt($credentials, true)) {
                     return response()->json(['message' => 'Unauthorized'], 401);
                 }
             } else {
+
                 if (!$token = Auth::attempt($credentials)) {
                     return response()->json(['message' => 'Unauthorized'], 401);
                 }

@@ -29,7 +29,7 @@ class AuthController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => ['required'],
                 'email' => ['required', 'email', 'unique:customers,email'],
-                'phone' => ['required', 'string', 'unique:customers,phone'],
+                'phone_number' => ['required', 'string', 'unique:customers,phone_number'],
                 'password' => 'required|min:6|confirmed',
                 'password_confirmation' => 'required|min:6',
                 'agree' => ['required'],
@@ -42,7 +42,7 @@ class AuthController extends Controller
             $customer = new Customer();
             $customer->name = $request->name;
             $customer->email = $request->email;
-            $customer->phone = $request->phone;
+            $customer->phone_number = $request->phone_number;
             $customer->password = Hash::make($request->password);
             $customer->save();
 
@@ -74,12 +74,12 @@ class AuthController extends Controller
             }
 
             $email = $request->input('email');
-            $request->input('phone');
+            $request->input('phone_number');
 
             if ($email) {
                 $credentials = $request->only(['email', 'password']);
             } else {
-                $credentials = $request->only(['phone', 'password']);
+                $credentials = $request->only(['phone_number', 'password']);
             }
 
 
@@ -272,7 +272,7 @@ class AuthController extends Controller
 
         try {
             $validator = Validator::make($request->all(), [
-                'phone' => ['required']
+                'phone_number' => ['required']
             ]);
 
             if ($validator->fails()) {
@@ -281,10 +281,10 @@ class AuthController extends Controller
 
             $validated = $validator->validated();
 
-            $customer = Customer::where('phone', $validated['phone'])->first();
+            $customer = Customer::where('phone_number', $validated['phone_number'])->first();
             if (!$customer) {
                 $customer = new Customer();
-                $customer->phone = $validated['phone'];
+                $customer->phone_number = $validated['phone_number'];
                 $customer->save();
             }
 
@@ -310,7 +310,7 @@ class AuthController extends Controller
                 'username' => $username,
                 'password' => $password,
                 'apicode' => $apiCode,
-                'msisdn' => [$customer->phone],
+                'msisdn' => [$customer->phone_number],
                 'countrycode' => '880',
                 'cli' => $cli,
                 'messagetype' => '1',
@@ -349,7 +349,7 @@ class AuthController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'phone' => ['required'],
+                'phone_number' => ['required'],
                 'otp' => ['required', 'numeric'],
             ]);
 
@@ -359,7 +359,7 @@ class AuthController extends Controller
 
             $validated = $validator->validated();
 
-            $customer = Customer::where('phone', $validated['phone'])->first();
+            $customer = Customer::where('phone_number', $validated['phone_number'])->first();
             if (!$customer) {
                 return response()->json(['message' => 'Unauthorized'], 401);
             }
@@ -399,7 +399,7 @@ class AuthController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'phone' => ['required'],
+                'phone_number' => ['required'],
                 'password' => ['required'],
             ]);
 
@@ -409,7 +409,7 @@ class AuthController extends Controller
 
             $validated = $validator->validated();
 
-            $customer = Customer::where('phone', $validated['phone'])->first();
+            $customer = Customer::where('phone_number', $validated['phone_number'])->first();
             if (!$customer) {
                 return response()->json(['message' => 'Unauthorized'], 401);
             }

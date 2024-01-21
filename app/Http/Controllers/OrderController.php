@@ -71,10 +71,13 @@ class OrderController extends Controller
             $order->billing_address = $request->billing_address;
             $order->billing_address_json = $request->billing_address_json;
             $order->sub_total = $request->sub_total;
+            $order->discount_sub_total = ($request->sub_total - $request->discount);
+            $order->coupon_code = $request->coupon_code;
             $order->discount = $request->discount;
             $order->shipping_charge = $request->shipping_charge;
             $order->tax = 0;
             $order->grand_total = $request->grand_total;
+
             $order->payment_method_id = $request->payment_method_id;
             $order->payment_details = json_encode([]);
             $order->order_status_id = Order::ORDER_STATUS_PENDING;
@@ -96,8 +99,12 @@ class OrderController extends Controller
             }
 
             $order->sub_total = $total;
-            $order->grand_total = $total + $request->shipping_charge;
+            $order->discount_sub_total = $total - $request->discount;
+            $order->grand_total = ( $total - $request->discount) + $request->shipping_charge;
+
             $order->update();
+
+
 
             $data = [
                 'name' => optional($order->customer)->name,
@@ -213,6 +220,8 @@ class OrderController extends Controller
             $order->billing_address = $request->billing_address;
             $order->billing_address_json = $request->billing_address_json;
             $order->sub_total = $request->sub_total;
+            $order->discount_sub_total = ($request->sub_total - $request->discount);
+            $order->coupon_code = $request->coupon_code;
             $order->discount = $request->discount;
             $order->shipping_charge = $request->shipping_charge;
             $order->tax = 0;
@@ -245,8 +254,8 @@ class OrderController extends Controller
             }
 
             $order->sub_total = $total;
-            $order->grand_total = $total + $request->shipping_charge;
-            $order->update();
+            $order->discount_sub_total = $total - $request->discount;
+            $order->grand_total = ( $total - $request->discount) + $request->shipping_charge;
 
             $data = [
                 'name' => optional($order->customer)->name,

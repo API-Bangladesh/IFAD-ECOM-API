@@ -38,7 +38,8 @@ class CustomerController extends Controller
                 'name' => ['required'],
                 'date_of_birth' => ['nullable'],
                 'gender' => ['nullable'],
-                'phone_number' => ['required'],
+                'phone_number' => ['nullable'],
+                'email' => ['nullable'],
             ];
 
             if ($request->hasFile('image')) {
@@ -53,6 +54,7 @@ class CustomerController extends Controller
 
             $customer = Customer::findOrFail(Auth::id());
             $customer->name = $request->name;
+            $customer->email = $request->email;
             $customer->date_of_birth = $request->date_of_birth;
             $customer->gender = $request->gender;
             $customer->phone_number = $request->phone_number;

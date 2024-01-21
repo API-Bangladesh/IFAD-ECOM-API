@@ -38,3 +38,4 @@ Route::group(['middleware' => ['auth:api']], function () {
  */
 
 include "social-login/Google.php";
+include "social-login/Facebook.php";

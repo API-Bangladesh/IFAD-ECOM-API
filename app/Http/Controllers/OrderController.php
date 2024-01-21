@@ -11,6 +11,10 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Config;
+use function generateRandomClientTransId;
+use function generateRandomOTP;
+use function makeHttpRequest;
 
 class OrderController extends Controller
 {
@@ -112,24 +116,181 @@ class OrderController extends Controller
                 'subject' => "IFAD eShop: Order Placing Notification",
             ];
 
-            Mail::send('Email.send_order', [
-                'invoice_id' => $order->id,
-                'customer_name' => optional($order->customer)->name,
-                'orderItems' => $order->orderItems,
-                'sub_total' => $order->sub_total,
-                'shipping_charge' => $order->shipping_charge,
-                'grand_total' => $order->grand_total,
-                'shipping_address' => $order->shipping_address,
-            ], function ($message) use ($data) {
-                $message->to([
-                    $data["email"] => $data["name"],
-                    "ifadeshop@ifadgroup.com" => "ifadeshop"
-                ]);
-                $message->from(config('mail.from.address'), config('mail.from.name'));
-                $message->subject($data["subject"]);
-            });
+            // Mail::send('Email.send_order', [
+            //     'invoice_id' => $order->id,
+            //     'customer_name' => optional($order->customer)->name,
+            //     'orderItems' => $order->orderItems,
+            //     'sub_total' => $order->sub_total,
+            //     'shipping_charge' => $order->shipping_charge,
+            //     'grand_total' => $order->grand_total,
+            //     'shipping_address' => $order->shipping_address,
+            // ], function ($message) use ($data) {
+            //     $message->to([
+            //         $data["email"] => $data["name"],
+            //         "ifadeshop@ifadgroup.com" => "ifadeshop"
+            //     ]);
+            //     $message->from(config('mail.from.address'), config('mail.from.name'));
+            //     $message->subject($data["subject"]);
+            // });
 
-            return make_success_response("Record saved successfully.");
+            // $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+            // $username = Config::get('app.banglalink_sms_username');
+            // $password = Config::get('app.banglalink_sms_password');
+            // $apiCode = Config::get('app.banglalink_sms_apicode');
+            // $cli = Config::get('app.banglalink_sms_cli');
+
+
+            // //request body
+
+            // $requestData = [
+            //     'username' => $username,
+            //     'password' => $password,
+            //     'apicode' => $apiCode,
+            //     'msisdn' => [$order->customer->phone_number],
+            //     'countrycode' => '880',
+            //     'cli' => $cli,
+            //     'messagetype' => '1',
+            //     'message' => "order confirmation from ifadeshop.com\nyour order id:".$order->id."\nOrder Status: pending\nPayment Status: Unpaid\nTotal Amount: ".$order->grand_total,
+            //     'clienttransid' => generateRandomClientTransId(),
+            //     'bill_msisdn' => $cli,
+            //     'tran_type' => 'P',
+            //     'request_type' => 'B',
+            //     'rn_code' => '91',
+            // ];
+
+            // $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+            // if ($httpResponse['success']) {
+            //     // Process the response as needed
+            //     return response()->json(['success' => true, 'response' => $httpResponse['response']]);
+            // } else {
+            //     // Handle exceptions
+            //     return response()->json(['success' => false, 'error' => $httpResponse['error']]);
+            // }
+
+            // //return make_success_response("Record saved successfully.");
+
+            //////
+
+
+                $isOrderEmail=$order->customer->email ?? '';
+                $isOrderPhone=$order->customer->phone_number ?? '';
+
+                if($isOrderEmail != '' &&  $isOrderPhone != ''){
+                Mail::send('Email.send_order', [
+                    'invoice_id' => $order->id,
+                    'customer_name' => optional($order->customer)->name,
+                    'orderItems' => $order->orderItems,
+                    'sub_total' => $order->sub_total,
+                    'shipping_charge' => $order->shipping_charge,
+                    'grand_total' => $order->grand_total,
+                    'shipping_address' => $order->shipping_address,
+                ], function ($message) use ($data) {
+                    $message->to([
+                        $data["email"] => $data["name"],
+                        "ifadeshop@ifadgroup.com" => "ifadeshop"
+                    ]);
+                    $message->from(config('mail.from.address'), config('mail.from.name'));
+                    $message->subject($data["subject"]);
+                });
+
+                $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                $username = Config::get('app.banglalink_sms_username');
+                $password = Config::get('app.banglalink_sms_password');
+                $apiCode = Config::get('app.banglalink_sms_apicode');
+                $cli = Config::get('app.banglalink_sms_cli');
+
+
+                //request body
+
+                $requestData = [
+                    'username' => $username,
+                    'password' => $password,
+                    'apicode' => $apiCode,
+                    'msisdn' => [$order->customer->phone_number],
+                    'countrycode' => '880',
+                    'cli' => $cli,
+                    'messagetype' => '1',
+                    'message' => "order confirmation from ifadeshop.com\nyour order id:".$order->id."\nOrder Status: pending\nPayment Status: Unpaid\nTotal Amount: ".$order->grand_total,
+                    'clienttransid' => generateRandomClientTransId(),
+                    'bill_msisdn' => $cli,
+                    'tran_type' => 'P',
+                    'request_type' => 'B',
+                    'rn_code' => '91',
+                ];
+
+                $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+                if ($httpResponse['success']) {
+                    // Process the response as needed
+                    return make_success_response("Record saved successfully.");
+                } else {
+                    // Handle exceptions
+                    return response()->json(['success' => false, 'error' => $httpResponse['error']]);
+                }
+
+
+
+            }else if($isOrderEmail != '' &&  $isOrderPhone == ''){
+                Mail::send('Email.send_order', [
+                    'invoice_id' => $order->id,
+                    'customer_name' => optional($order->customer)->name,
+                    'orderItems' => $order->orderItems,
+                    'sub_total' => $order->sub_total,
+                    'shipping_charge' => $order->shipping_charge,
+                    'grand_total' => $order->grand_total,
+                    'shipping_address' => $order->shipping_address,
+                ], function ($message) use ($data) {
+                    $message->to([
+                        $data["email"] => $data["name"],
+                        "ifadeshop@ifadgroup.com" => "ifadeshop"
+                    ]);
+                    $message->from(config('mail.from.address'), config('mail.from.name'));
+                    $message->subject($data["subject"]);
+                });
+                return make_success_response("Record saved successfully.");
+
+            }else if($isOrderEmail == '' &&  $isOrderPhone != ''){
+
+                $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                $username = Config::get('app.banglalink_sms_username');
+                $password = Config::get('app.banglalink_sms_password');
+                $apiCode = Config::get('app.banglalink_sms_apicode');
+                $cli = Config::get('app.banglalink_sms_cli');
+
+
+                //request body
+
+                $requestData = [
+                    'username' => $username,
+                    'password' => $password,
+                    'apicode' => $apiCode,
+                    'msisdn' => [$order->customer->phone_number],
+                    'countrycode' => '880',
+                    'cli' => $cli,
+                    'messagetype' => '1',
+                    'message' => "order confirmation from ifadeshop.com\nyour order id:".$order->id."\nOrder Status: pending\nPayment Status: Unpaid\nTotal Amount: ".$order->grand_total,
+                    'clienttransid' => generateRandomClientTransId(),
+                    'bill_msisdn' => $cli,
+                    'tran_type' => 'P',
+                    'request_type' => 'B',
+                    'rn_code' => '91',
+                ];
+
+                $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+                if ($httpResponse['success']) {
+                    // Process the response as needed
+                    return make_success_response("Record saved successfully.");
+                } else {
+                    // Handle exceptions
+                    return response()->json(['success' => false, 'error' => $httpResponse['error']]);
+                }
+
+
+            }else{
+                return make_error_response("Record is not saved.");
+            }
         } catch (\Exception $exception) {
             return make_error_response($exception->getMessage());
         }
@@ -177,6 +338,50 @@ class OrderController extends Controller
                     'email' => optional($order->customer)->email,
                     'subject' => "IFAD eShop: Order Status Changed",
                 ];
+
+                $isOrderEmail=$order->customer->email ?? '';
+                $isOrderPhone=$order->customer->phone_number ?? '';
+
+                if($isOrderEmail != '' &&  $isOrderPhone != ''){
+                    Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+                        'payment_status_name' => get_payment_status_name($request->payment_status_id),
+                        'order_status_name' => get_order_status_name($request->payment_status_id)
+                    ], function ($message) use ($data) {
+                        $message->to($data["email"]);
+                        $message->from(config('mail.from.address'), config('mail.from.name'));
+                        $message->subject($data["subject"]);
+                    });
+
+                $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                $username = Config::get('app.banglalink_sms_username');
+                $password = Config::get('app.banglalink_sms_password');
+                $apiCode = Config::get('app.banglalink_sms_apicode');
+                $cli = Config::get('app.banglalink_sms_cli');
+
+
+                //request body
+
+                $requestData = [
+                    'username' => $username,
+                    'password' => $password,
+                    'apicode' => $apiCode,
+                    'msisdn' => [$order->customer->phone_number],
+                    'countrycode' => '880',
+                    'cli' => $cli,
+                    'messagetype' => '1',
+                    'message' => "order confirmation from ifadeshop.com\nyour order id:".$order->id."\nTotal Amount: ".$order->grand_total,
+                    'clienttransid' => generateRandomClientTransId(),
+                    'bill_msisdn' => $cli,
+                    'tran_type' => 'P',
+                    'request_type' => 'B',
+                    'rn_code' => '91',
+                ];
+
+                $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+
+            }else if($isOrderEmail != '' &&  $isOrderPhone == ''){
                 Mail::send(['html' => 'Email.send_order_status_change_notification'], [
                     'payment_status_name' => get_payment_status_name($request->payment_status_id),
                     'order_status_name' => get_order_status_name($request->payment_status_id)
@@ -185,6 +390,38 @@ class OrderController extends Controller
                     $message->from(config('mail.from.address'), config('mail.from.name'));
                     $message->subject($data["subject"]);
                 });
+
+                }else if($isOrderEmail == '' &&  $isOrderPhone != ''){
+
+                    $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                    $username = Config::get('app.banglalink_sms_username');
+                    $password = Config::get('app.banglalink_sms_password');
+                    $apiCode = Config::get('app.banglalink_sms_apicode');
+                    $cli = Config::get('app.banglalink_sms_cli');
+
+
+                    //request body
+
+                    $requestData = [
+                        'username' => $username,
+                        'password' => $password,
+                        'apicode' => $apiCode,
+                        'msisdn' => [$order->customer->phone_number],
+                        'countrycode' => '880',
+                        'cli' => $cli,
+                        'messagetype' => '1',
+                        'message' => "order confirmation from ifadeshop.com\nyour order id:".$order->id."\nTotal Amount: ".$order->grand_total,
+                        'clienttransid' => generateRandomClientTransId(),
+                        'bill_msisdn' => $cli,
+                        'tran_type' => 'P',
+                        'request_type' => 'B',
+                        'rn_code' => '91',
+                    ];
+
+                    $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+                }
             });
 
             return make_success_response("Record saved successfully.");
@@ -263,22 +500,104 @@ class OrderController extends Controller
                 'subject' => "IFAD eShop: Order Placing Notification",
             ];
 
-            Mail::send('Email.send_order', [
-                'invoice_id' => $order->id,
-                'customer_name' => optional($order->customer)->name,
-                'orderItems' => $order->orderItems,
-                'sub_total' => $order->sub_total,
-                'shipping_charge' => $order->shipping_charge,
-                'grand_total' => $order->grand_total,
-                'shipping_address' => $order->shipping_address,
-            ], function ($message) use ($data) {
-                $message->to([
-                    $data["email"] => $data["name"],
-                    "ifadeshop@ifadgroup.com" => "ifadeshop"
-                ]);
-                $message->from(config('mail.from.address'), config('mail.from.name'));
-                $message->subject($data["subject"]);
-            });
+            $isOrderEmail=$order->customer->email ?? '';
+                $isOrderPhone=$order->customer->phone_number ?? '';
+
+                if($isOrderEmail != '' &&  $isOrderPhone != ''){
+                Mail::send('Email.send_order', [
+                    'invoice_id' => $order->id,
+                    'customer_name' => optional($order->customer)->name,
+                    'orderItems' => $order->orderItems,
+                    'sub_total' => $order->sub_total,
+                    'shipping_charge' => $order->shipping_charge,
+                    'grand_total' => $order->grand_total,
+                    'shipping_address' => $order->shipping_address,
+                ], function ($message) use ($data) {
+                    $message->to([
+                        $data["email"] => $data["name"],
+                        "ifadeshop@ifadgroup.com" => "ifadeshop"
+                    ]);
+                    $message->from(config('mail.from.address'), config('mail.from.name'));
+                    $message->subject($data["subject"]);
+                });
+
+                $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                $username = Config::get('app.banglalink_sms_username');
+                $password = Config::get('app.banglalink_sms_password');
+                $apiCode = Config::get('app.banglalink_sms_apicode');
+                $cli = Config::get('app.banglalink_sms_cli');
+
+
+                //request body
+
+                $requestData = [
+                    'username' => $username,
+                    'password' => $password,
+                    'apicode' => $apiCode,
+                    'msisdn' => [$order->customer->phone_number],
+                    'countrycode' => '880',
+                    'cli' => $cli,
+                    'messagetype' => '1',
+                    'message' => "order confirmation from ifadeshop.com\nyour order id:".$order->id."\nOrder Status: pending\nPayment Status: Unpaid\nTotal Amount: ".$order->grand_total,
+                    'clienttransid' => generateRandomClientTransId(),
+                    'bill_msisdn' => $cli,
+                    'tran_type' => 'P',
+                    'request_type' => 'B',
+                    'rn_code' => '91',
+                ];
+
+                $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+            }else if($isOrderEmail != '' &&  $isOrderPhone == ''){
+                Mail::send('Email.send_order', [
+                    'invoice_id' => $order->id,
+                    'customer_name' => optional($order->customer)->name,
+                    'orderItems' => $order->orderItems,
+                    'sub_total' => $order->sub_total,
+                    'shipping_charge' => $order->shipping_charge,
+                    'grand_total' => $order->grand_total,
+                    'shipping_address' => $order->shipping_address,
+                ], function ($message) use ($data) {
+                    $message->to([
+                        $data["email"] => $data["name"],
+                        "ifadeshop@ifadgroup.com" => "ifadeshop"
+                    ]);
+                    $message->from(config('mail.from.address'), config('mail.from.name'));
+                    $message->subject($data["subject"]);
+                });
+
+            }else if($isOrderEmail == '' &&  $isOrderPhone != ''){
+
+                $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                $username = Config::get('app.banglalink_sms_username');
+                $password = Config::get('app.banglalink_sms_password');
+                $apiCode = Config::get('app.banglalink_sms_apicode');
+                $cli = Config::get('app.banglalink_sms_cli');
+
+
+                //request body
+
+                $requestData = [
+                    'username' => $username,
+                    'password' => $password,
+                    'apicode' => $apiCode,
+                    'msisdn' => [$order->customer->phone_number],
+                    'countrycode' => '880',
+                    'cli' => $cli,
+                    'messagetype' => '1',
+                    'message' => "order confirmation from ifadeshop.com\nyour order id:".$order->id."\nOrder Status: pending\nPayment Status: Unpaid\nTotal Amount: ".$order->grand_total,
+                    'clienttransid' => generateRandomClientTransId(),
+                    'bill_msisdn' => $cli,
+                    'tran_type' => 'P',
+                    'request_type' => 'B',
+                    'rn_code' => '91',
+                ];
+
+                $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+            }
 
             if (strlen($productNames) > 250) {
                 $productNames = substr($productNames, 0, 250); // max 255
@@ -653,6 +972,90 @@ class OrderController extends Controller
                             $message->from(config('mail.from.address'), config('mail.from.name'));
                             $message->subject($data["subject"]);
                         });
+
+                    //     $isOrderEmail=$order->customer->email ?? '';
+                    //     $isOrderPhone=$order->customer->phone_number ?? '';
+
+                    //     if($isOrderEmail != '' &&  $isOrderPhone != ''){
+                    //         Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+                    //             'payment_status_name' => get_payment_status_name(1),
+                    //             'order_status_name' => get_order_status_name(1)
+                    //         ], function ($message) use ($data) {
+                    //             $message->to($data["email"]);
+                    //             $message->from(config('mail.from.address'), config('mail.from.name'));
+                    //             $message->subject($data["subject"]);
+                    //         });
+
+                    //     $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                    //     $username = Config::get('app.banglalink_sms_username');
+                    //     $password = Config::get('app.banglalink_sms_password');
+                    //     $apiCode = Config::get('app.banglalink_sms_apicode');
+                    //     $cli = Config::get('app.banglalink_sms_cli');
+
+
+                    //     //request body
+
+                    //     $requestData = [
+                    //         'username' => $username,
+                    //         'password' => $password,
+                    //         'apicode' => $apiCode,
+                    //         'msisdn' => [$order->customer->phone_number],
+                    //         'countrycode' => '880',
+                    //         'cli' => $cli,
+                    //         'messagetype' => '1',
+                    //         'message' => "order confirmation from ifadeshop.com\nyour order id:".$order->id."\nTotal Amount: ".$order->grand_total,
+                    //         'clienttransid' => generateRandomClientTransId(),
+                    //         'bill_msisdn' => $cli,
+                    //         'tran_type' => 'P',
+                    //         'request_type' => 'B',
+                    //         'rn_code' => '91',
+                    //     ];
+
+                    //     $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+
+                    // }else if($isOrderEmail != '' &&  $isOrderPhone == ''){
+                    //     Mail::send(['html' => 'Email.send_order_status_change_notification'], [
+                    //         'payment_status_name' => get_payment_status_name($request->payment_status_id),
+                    //         'order_status_name' => get_order_status_name($request->payment_status_id)
+                    //     ], function ($message) use ($data) {
+                    //         $message->to($data["email"]);
+                    //         $message->from(config('mail.from.address'), config('mail.from.name'));
+                    //         $message->subject($data["subject"]);
+                    //     });
+
+                    //     }else if($isOrderEmail == '' &&  $isOrderPhone != ''){
+
+                    //         $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                    //         $username = Config::get('app.banglalink_sms_username');
+                    //         $password = Config::get('app.banglalink_sms_password');
+                    //         $apiCode = Config::get('app.banglalink_sms_apicode');
+                    //         $cli = Config::get('app.banglalink_sms_cli');
+
+
+                    //         //request body
+
+                    //         $requestData = [
+                    //             'username' => $username,
+                    //             'password' => $password,
+                    //             'apicode' => $apiCode,
+                    //             'msisdn' => [$order->customer->phone_number],
+                    //             'countrycode' => '880',
+                    //             'cli' => $cli,
+                    //             'messagetype' => '1',
+                    //             'message' => "order confirmation from ifadeshop.com\nyour order id:".$order->id."\nTotal Amount: ".$order->grand_total,
+                    //             'clienttransid' => generateRandomClientTransId(),
+                    //             'bill_msisdn' => $cli,
+                    //             'tran_type' => 'P',
+                    //             'request_type' => 'B',
+                    //             'rn_code' => '91',
+                    //         ];
+
+                    //         $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+                    //     }
                     });
 
                     return redirect($completion . "?status=success");
@@ -703,24 +1106,130 @@ class OrderController extends Controller
                     'subject' => "IFAD eShop: Order Placing Notification",
                 ];
 
-                Mail::send('Email.send_order_status_change_notification', [
-                    'invoice_id' => $order->id,
-                    'customer_name' => optional($order->customer)->name,
-                    'orderItems' => $order->orderItems,
-                    'sub_total' => $order->sub_total,
-                    'shipping_charge' => $order->shipping_charge,
-                    'grand_total' => $order->grand_total,
-                    'shipping_address' => $order->shipping_address,
-                    'payment_status_name' => get_payment_status_name($order->payment_status_id),
-                    'order_status_name' => get_order_status_name($order->order_status_id)
-                ], function ($message) use ($data) {
-                    $message->to([
-                        $data["email"] => $data["name"],
-                        "ifadeshop@ifadgroup.com" => "ifadeshop"
-                    ]);
-                    $message->from(config('mail.from.address'), config('mail.from.name'));
-                    $message->subject($data["subject"]);
-                });
+                // Mail::send('Email.send_order_status_change_notification', [
+                //     'invoice_id' => $order->id,
+                //     'customer_name' => optional($order->customer)->name,
+                //     'orderItems' => $order->orderItems,
+                //     'sub_total' => $order->sub_total,
+                //     'shipping_charge' => $order->shipping_charge,
+                //     'grand_total' => $order->grand_total,
+                //     'shipping_address' => $order->shipping_address,
+                //     'payment_status_name' => get_payment_status_name($order->payment_status_id),
+                //     'order_status_name' => get_order_status_name($order->order_status_id)
+                // ], function ($message) use ($data) {
+                //     $message->to([
+                //         $data["email"] => $data["name"],
+                //         "ifadeshop@ifadgroup.com" => "ifadeshop"
+                //     ]);
+                //     $message->from(config('mail.from.address'), config('mail.from.name'));
+                //     $message->subject($data["subject"]);
+                // });
+
+                    $isOrderEmail=$order->customer->email ?? '';
+                        $isOrderPhone=$order->customer->phone_number ?? '';
+
+                        if($isOrderEmail != '' &&  $isOrderPhone != ''){
+                            Mail::send('Email.send_order_status_change_notification', [
+                            'invoice_id' => $order->id,
+                            'customer_name' => optional($order->customer)->name,
+                            'orderItems' => $order->orderItems,
+                            'sub_total' => $order->sub_total,
+                            'shipping_charge' => $order->shipping_charge,
+                            'grand_total' => $order->grand_total,
+                            'shipping_address' => $order->shipping_address,
+                            'payment_status_name' => get_payment_status_name($order->payment_status_id),
+                            'order_status_name' => get_order_status_name($order->order_status_id)
+                            ], function ($message) use ($data) {
+                            $message->to([
+                                $data["email"] => $data["name"],
+                                "ifadeshop@ifadgroup.com" => "ifadeshop"
+                            ]);
+                            $message->from(config('mail.from.address'), config('mail.from.name'));
+                            $message->subject($data["subject"]);
+                            });
+
+                        $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                        $username = Config::get('app.banglalink_sms_username');
+                        $password = Config::get('app.banglalink_sms_password');
+                        $apiCode = Config::get('app.banglalink_sms_apicode');
+                        $cli = Config::get('app.banglalink_sms_cli');
+
+
+                        //request body
+
+                        $requestData = [
+                            'username' => $username,
+                            'password' => $password,
+                            'apicode' => $apiCode,
+                            'msisdn' => [$order->customer->phone_number],
+                            'countrycode' => '880',
+                            'cli' => $cli,
+                            'messagetype' => '1',
+                            'message' => "order confirmation from ifadeshop.com\nPayment Status: Success\nyour order id:".$order->id."\nTotal Amount: ".$order->grand_total,
+                            'clienttransid' => generateRandomClientTransId(),
+                            'bill_msisdn' => $cli,
+                            'tran_type' => 'P',
+                            'request_type' => 'B',
+                            'rn_code' => '91',
+                        ];
+
+                        $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+
+                    }else if($isOrderEmail != '' &&  $isOrderPhone == ''){
+                        Mail::send('Email.send_order_status_change_notification', [
+                            'invoice_id' => $order->id,
+                            'customer_name' => optional($order->customer)->name,
+                            'orderItems' => $order->orderItems,
+                            'sub_total' => $order->sub_total,
+                            'shipping_charge' => $order->shipping_charge,
+                            'grand_total' => $order->grand_total,
+                            'shipping_address' => $order->shipping_address,
+                            'payment_status_name' => get_payment_status_name($order->payment_status_id),
+                            'order_status_name' => get_order_status_name($order->order_status_id)
+                            ], function ($message) use ($data) {
+                            $message->to([
+                                $data["email"] => $data["name"],
+                                "ifadeshop@ifadgroup.com" => "ifadeshop"
+                            ]);
+                            $message->from(config('mail.from.address'), config('mail.from.name'));
+                            $message->subject($data["subject"]);
+                            });
+
+                        }else if($isOrderEmail == '' &&  $isOrderPhone != ''){
+
+                            $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                            $username = Config::get('app.banglalink_sms_username');
+                            $password = Config::get('app.banglalink_sms_password');
+                            $apiCode = Config::get('app.banglalink_sms_apicode');
+                            $cli = Config::get('app.banglalink_sms_cli');
+
+
+                            //request body
+
+                            $requestData = [
+                                'username' => $username,
+                                'password' => $password,
+                                'apicode' => $apiCode,
+                                'msisdn' => [$order->customer->phone_number],
+                                'countrycode' => '880',
+                                'cli' => $cli,
+                                'messagetype' => '1',
+                                'message' => "order confirmation from ifadeshop.com\nPayment Status: Success\nyour order id:".$order->id."\nTotal Amount: ".$order->grand_total,
+                                'clienttransid' => generateRandomClientTransId(),
+                                'bill_msisdn' => $cli,
+                                'tran_type' => 'P',
+                                'request_type' => 'B',
+                                'rn_code' => '91',
+                            ];
+
+                            $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+                        }
+
+
             });
 
             return redirect($completion . "?status=success");
@@ -737,24 +1246,111 @@ class OrderController extends Controller
                     'subject' => "IFAD eShop: Order Placing Notification",
                 ];
 
-                Mail::send('Email.send_order_status_change_notification', [
-                    'invoice_id' => $order->id,
-                    'customer_name' => optional($order->customer)->name,
-                    'orderItems' => $order->orderItems,
-                    'sub_total' => $order->sub_total,
-                    'shipping_charge' => $order->shipping_charge,
-                    'grand_total' => $order->grand_total,
-                    'shipping_address' => $order->shipping_address,
-                    'payment_status_name' => get_payment_status_name($order->payment_status_id),
-                    'order_status_name' => get_order_status_name($order->order_status_id)
-                ], function ($message) use ($data) {
-                    $message->to([
-                        $data["email"] => $data["name"],
-                        "ifadeshop@ifadgroup.com" => "ifadeshop"
-                    ]);
-                    $message->from(config('mail.from.address'), config('mail.from.name'));
-                    $message->subject($data["subject"]);
-                });
+
+
+                $isOrderEmail=$order->customer->email ?? '';
+                        $isOrderPhone=$order->customer->phone_number ?? '';
+
+                        if($isOrderEmail != '' &&  $isOrderPhone != ''){
+                            Mail::send('Email.send_order_status_change_notification', [
+                                'invoice_id' => $order->id,
+                                'customer_name' => optional($order->customer)->name,
+                                'orderItems' => $order->orderItems,
+                                'sub_total' => $order->sub_total,
+                                'shipping_charge' => $order->shipping_charge,
+                                'grand_total' => $order->grand_total,
+                                'shipping_address' => $order->shipping_address,
+                                'payment_status_name' => get_payment_status_name($order->payment_status_id),
+                                'order_status_name' => get_order_status_name($order->order_status_id)
+                            ], function ($message) use ($data) {
+                                $message->to([
+                                    $data["email"] => $data["name"],
+                                    "ifadeshop@ifadgroup.com" => "ifadeshop"
+                                ]);
+                                $message->from(config('mail.from.address'), config('mail.from.name'));
+                                $message->subject($data["subject"]);
+                            });
+
+                        $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                        $username = Config::get('app.banglalink_sms_username');
+                        $password = Config::get('app.banglalink_sms_password');
+                        $apiCode = Config::get('app.banglalink_sms_apicode');
+                        $cli = Config::get('app.banglalink_sms_cli');
+
+
+                        //request body
+
+                        $requestData = [
+                            'username' => $username,
+                            'password' => $password,
+                            'apicode' => $apiCode,
+                            'msisdn' => [$order->customer->phone_number],
+                            'countrycode' => '880',
+                            'cli' => $cli,
+                            'messagetype' => '1',
+                            'message' => "order confirmation from ifadeshop.com\nPayment Status: Fail\nyour order id:".$order->id."\nTotal Amount: ".$order->grand_total,
+                            'clienttransid' => generateRandomClientTransId(),
+                            'bill_msisdn' => $cli,
+                            'tran_type' => 'P',
+                            'request_type' => 'B',
+                            'rn_code' => '91',
+                        ];
+
+                        $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+
+                    }else if($isOrderEmail != '' &&  $isOrderPhone == ''){
+                        Mail::send('Email.send_order_status_change_notification', [
+                            'invoice_id' => $order->id,
+                            'customer_name' => optional($order->customer)->name,
+                            'orderItems' => $order->orderItems,
+                            'sub_total' => $order->sub_total,
+                            'shipping_charge' => $order->shipping_charge,
+                            'grand_total' => $order->grand_total,
+                            'shipping_address' => $order->shipping_address,
+                            'payment_status_name' => get_payment_status_name($order->payment_status_id),
+                            'order_status_name' => get_order_status_name($order->order_status_id)
+                        ], function ($message) use ($data) {
+                            $message->to([
+                                $data["email"] => $data["name"],
+                                "ifadeshop@ifadgroup.com" => "ifadeshop"
+                            ]);
+                            $message->from(config('mail.from.address'), config('mail.from.name'));
+                            $message->subject($data["subject"]);
+                        });
+
+                        }else if($isOrderEmail == '' &&  $isOrderPhone != ''){
+
+                            $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                            $username = Config::get('app.banglalink_sms_username');
+                            $password = Config::get('app.banglalink_sms_password');
+                            $apiCode = Config::get('app.banglalink_sms_apicode');
+                            $cli = Config::get('app.banglalink_sms_cli');
+
+
+                            //request body
+
+                            $requestData = [
+                                'username' => $username,
+                                'password' => $password,
+                                'apicode' => $apiCode,
+                                'msisdn' => [$order->customer->phone_number],
+                                'countrycode' => '880',
+                                'cli' => $cli,
+                                'messagetype' => '1',
+                                'message' => "order confirmation from ifadeshop.com\nPayment Status: Fail\nyour order id:".$order->id."\nTotal Amount: ".$order->grand_total,
+                                'clienttransid' => generateRandomClientTransId(),
+                                'bill_msisdn' => $cli,
+                                'tran_type' => 'P',
+                                'request_type' => 'B',
+                                'rn_code' => '91',
+                            ];
+
+                            $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+                        }
             });
             return redirect($completion . "?status=fail");
         } else if ($status === "cancel") {
@@ -770,24 +1366,111 @@ class OrderController extends Controller
                     'subject' => "IFAD eShop: Order Placing Notification",
                 ];
 
-                Mail::send('Email.send_order_status_change_notification', [
-                    'invoice_id' => $order->id,
-                    'customer_name' => optional($order->customer)->name,
-                    'orderItems' => $order->orderItems,
-                    'sub_total' => $order->sub_total,
-                    'shipping_charge' => $order->shipping_charge,
-                    'grand_total' => $order->grand_total,
-                    'shipping_address' => $order->shipping_address,
-                    'payment_status_name' => get_payment_status_name($order->payment_status_id),
-                    'order_status_name' => get_order_status_name($order->order_status_id)
-                ], function ($message) use ($data) {
-                    $message->to([
-                        $data["email"] => $data["name"],
-                        "ifadeshop@ifadgroup.com" => "ifadeshop"
-                    ]);
-                    $message->from(config('mail.from.address'), config('mail.from.name'));
-                    $message->subject($data["subject"]);
-                });
+
+
+                $isOrderEmail=$order->customer->email ?? '';
+                        $isOrderPhone=$order->customer->phone_number ?? '';
+
+                        if($isOrderEmail != '' &&  $isOrderPhone != ''){
+                            Mail::send('Email.send_order_status_change_notification', [
+                                'invoice_id' => $order->id,
+                                'customer_name' => optional($order->customer)->name,
+                                'orderItems' => $order->orderItems,
+                                'sub_total' => $order->sub_total,
+                                'shipping_charge' => $order->shipping_charge,
+                                'grand_total' => $order->grand_total,
+                                'shipping_address' => $order->shipping_address,
+                                'payment_status_name' => get_payment_status_name($order->payment_status_id),
+                                'order_status_name' => get_order_status_name($order->order_status_id)
+                            ], function ($message) use ($data) {
+                                $message->to([
+                                    $data["email"] => $data["name"],
+                                    "ifadeshop@ifadgroup.com" => "ifadeshop"
+                                ]);
+                                $message->from(config('mail.from.address'), config('mail.from.name'));
+                                $message->subject($data["subject"]);
+                            });
+
+                        $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                        $username = Config::get('app.banglalink_sms_username');
+                        $password = Config::get('app.banglalink_sms_password');
+                        $apiCode = Config::get('app.banglalink_sms_apicode');
+                        $cli = Config::get('app.banglalink_sms_cli');
+
+
+                        //request body
+
+                        $requestData = [
+                            'username' => $username,
+                            'password' => $password,
+                            'apicode' => $apiCode,
+                            'msisdn' => [$order->customer->phone_number],
+                            'countrycode' => '880',
+                            'cli' => $cli,
+                            'messagetype' => '1',
+                            'message' => "order confirmation from ifadeshop.com\nPayment Status: Cancel\nyour order id:".$order->id."\nTotal Amount: ".$order->grand_total,
+                            'clienttransid' => generateRandomClientTransId(),
+                            'bill_msisdn' => $cli,
+                            'tran_type' => 'P',
+                            'request_type' => 'B',
+                            'rn_code' => '91',
+                        ];
+
+                        $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+
+                    }else if($isOrderEmail != '' &&  $isOrderPhone == ''){
+                        Mail::send('Email.send_order_status_change_notification', [
+                            'invoice_id' => $order->id,
+                            'customer_name' => optional($order->customer)->name,
+                            'orderItems' => $order->orderItems,
+                            'sub_total' => $order->sub_total,
+                            'shipping_charge' => $order->shipping_charge,
+                            'grand_total' => $order->grand_total,
+                            'shipping_address' => $order->shipping_address,
+                            'payment_status_name' => get_payment_status_name($order->payment_status_id),
+                            'order_status_name' => get_order_status_name($order->order_status_id)
+                        ], function ($message) use ($data) {
+                            $message->to([
+                                $data["email"] => $data["name"],
+                                "ifadeshop@ifadgroup.com" => "ifadeshop"
+                            ]);
+                            $message->from(config('mail.from.address'), config('mail.from.name'));
+                            $message->subject($data["subject"]);
+                        });
+
+                        }else if($isOrderEmail == '' &&  $isOrderPhone != ''){
+
+                            $apiEndpoint = Config::get('app.banglalink_sms_api_endpoint');
+                            $username = Config::get('app.banglalink_sms_username');
+                            $password = Config::get('app.banglalink_sms_password');
+                            $apiCode = Config::get('app.banglalink_sms_apicode');
+                            $cli = Config::get('app.banglalink_sms_cli');
+
+
+                            //request body
+
+                            $requestData = [
+                                'username' => $username,
+                                'password' => $password,
+                                'apicode' => $apiCode,
+                                'msisdn' => [$order->customer->phone_number],
+                                'countrycode' => '880',
+                                'cli' => $cli,
+                                'messagetype' => '1',
+                                'message' => "order confirmation from ifadeshop.com\nPayment Status: Cancel\nyour order id:".$order->id."\nTotal Amount: ".$order->grand_total,
+                                'clienttransid' => generateRandomClientTransId(),
+                                'bill_msisdn' => $cli,
+                                'tran_type' => 'P',
+                                'request_type' => 'B',
+                                'rn_code' => '91',
+                            ];
+
+                            $httpResponse = makeHttpRequest('POST', $apiEndpoint, $requestData);
+
+
+                        }
             });
             return redirect($completion . "?status=cancel");
         }

@@ -9,15 +9,42 @@ class CouponController extends Controller
 {
     public function index(Request $request)
     {
+        // $validCoupon = Coupon::where('coupon_code', $request->coupon_code)
+        // ->where('coupon_exp_date', '>', now())  // Assuming 'coupon_exp_date' is a datetime column
+        // ->where('limit_per_coupon', '>', 0)
+        // ->first();
+
         $validCoupon = Coupon::where('coupon_code', $request->coupon_code)
-        ->where('coupon_exp_date', '>', now())  // Assuming 'coupon_exp_date' is a datetime column
+        ->where('coupon_exp_date', '>', now()) // Assuming 'coupon_exp_date' is a datetime column
         ->where('limit_per_coupon', '>', 0)
         ->first();
 
-        if($validCoupon == null || ''){
+
+
+        $subTotal = $request->sub_total;
+
+        // Check if the coupon has a minimum spend requirement and if the subtotal meets this requirement
+        if (($validCoupon->coupon_min_spend !== null && $subTotal < $validCoupon->coupon_min_spend) ||
+            ($validCoupon->coupon_max_spend !== null && $subTotal > $validCoupon->coupon_max_spend)) {
+
+            $message = '';
+            if ($validCoupon->coupon_min_spend !== null && $subTotal < $validCoupon->coupon_min_spend) {
+                $message = 'Cart does not meet the minimum spend requirement for this coupon.';
+            } elseif ($validCoupon->coupon_max_spend !== null && $subTotal > $validCoupon->coupon_max_spend) {
+                $message = 'Cart exceeds the maximum spend limit for this coupon.';
+            }
+
             return response()->json([
-                'status' => 'Coupon Code is not Valid',
-            ], 406);
+                'code' => 400,
+                'message' => $message,
+            ], 400);
+        }
+
+        if (!$validCoupon) {
+            return response()->json([
+                'code' => 400,
+                'message' => 'Invalid Coupon',
+            ], 400);
         }else{
             $sub_total=$request->sub_total;
             $previous_subtotal=$request->sub_total;
@@ -37,7 +64,7 @@ class CouponController extends Controller
 
                 $TotalCoupon=$validCoupon->limit_per_coupon -1;
 
-                Coupon::where('id',$validCoupon->id)->update(['limit_per_coupon'=>$TotalCoupon]);
+
 
                 return response()->json([
                     'coupon_discount_type' => 'Fixed Amount Discount',
@@ -51,34 +78,43 @@ class CouponController extends Controller
            }
 
             if($validCoupon->coupon_discount_type == 'percentage_discount'){
-                if(($validCoupon->product_id == null || '') && ($validCoupon->exclude_id == null || '') && ($validCoupon->category_id == null || '') && ($validCoupon->exclude_category_id == null || '')){
 
+                if(($validCoupon->product_id == null || '') && ($validCoupon->exclude_id == null || '') && ($validCoupon->category_id == null || '') && ($validCoupon->exclude_category_id == null || '')) {
+                    $cart = $request['cart'];
+
+                    // Apply discount only to non-combo items
+                    foreach ($cart as &$item) {
+                        if ($item['type'] === 'combo') {
+                            continue; // Skip combo items
+                        }
+                        // Apply the percentage discount
+                        $discount_amount = $item['total'] * $validCoupon->coupon_amount / 100;
+                        $item['total'] -= $discount_amount;
+                    }
+
+                    // Calculate the new subtotal after discount
+                    $sub_total = array_sum(array_column($cart, 'total'));
+
+                    // Shipping charge logic
                     $shipping_charge = $request->shipping_charge;
                     if($validCoupon->is_free_delivery == 1){
-                        $shipping_charge= 0;
-                    }else{
-                        $shipping_charge=$request->shipping_charge;
+                        $shipping_charge = 0;
                     }
-                    //return $shipping_charge;
-                    $discountCouponAmount=$validCoupon->coupon_amount;
-                    //return $shipping_charge;
-                    $subtotalAmount=$sub_total-($sub_total*($validCoupon->coupon_amount/100));
-                    $grand_total = $sub_total-($sub_total*($validCoupon->coupon_amount/100))+$shipping_charge;
 
-                    $TotalCoupon=$validCoupon->limit_per_coupon -1;
+                    // Calculate the grand total
+                    $grand_total = $sub_total + $shipping_charge;
 
-                    Coupon::where('id',$validCoupon->id)->update(['limit_per_coupon'=>$TotalCoupon]);
-
+                    // Prepare the response
                     return response()->json([
                         'coupon_discount_type' => 'Percentage wise Discount',
-                        'discount_coupon_amount' => $discountCouponAmount.'%',
-                        'previous_subtotal' => $previous_subtotal,
-                        'sub_total' => $subtotalAmount,
+                        'discount_coupon_amount' => $validCoupon->coupon_amount . '%',
+                        'previous_subtotal' => $request->sub_total,
+                        'sub_total' => $sub_total,
                         'shipping_charge' => $shipping_charge,
                         'grand_total' => $grand_total,
                     ], 200);
-
                 }
+
 
              if (($validCoupon->product_id != null || '') ||
                 ($validCoupon->exclude_id != null || '') ||
@@ -149,7 +185,6 @@ class CouponController extends Controller
 
                                 $TotalCoupon=$validCoupon->limit_per_coupon -1;
 
-                                Coupon::where('id',$validCoupon->id)->update(['limit_per_coupon'=>$TotalCoupon]);
 
                                 return response()->json([
                                     'coupon_discount_type' => 'Percentage wise Discount',

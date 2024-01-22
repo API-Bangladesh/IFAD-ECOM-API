@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'providers' => [
+    Laravel\Socialite\SocialiteServiceProvider::class,
+],
+'aliases' => [
+    'Socialite' => Laravel\Socialite\Facades\Socialite::class,
+],
     'env' => env('APP_ENV', 'production'),
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
     'locale' => env('APP_LOCALE', 'en'),
@@ -10,3 +16,5 @@ return [
     'banglalink_sms_apicode' => env('BANGLALINK_SMS_APICODE'), //sms api code
     'banglalink_sms_cli' => env('BANGLALINK_SMS_CLI'), //sms api code
 ];
+#sms integration credentials
+

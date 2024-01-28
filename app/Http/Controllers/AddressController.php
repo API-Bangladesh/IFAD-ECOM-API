@@ -60,8 +60,8 @@ class AddressController extends Controller
             $address->phone = $request->phone;
             $address->email = $request->email;
             $address->customer_id = Auth::id();
-            $address->is_default_billing = null;
-            $address->is_default_shipping = null;
+            $address->is_default_billing = $request->is_default_billing ? '1' : null;
+            $address->is_default_shipping = $request->is_default_shipping ?'1' : null;
             $address->save();
 
             return make_success_response("Record saved successfully.");

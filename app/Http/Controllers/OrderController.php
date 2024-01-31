@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\Coupon;
 use App\Models\OrderItem;
 use Exception;
 use Illuminate\Http\Request;
@@ -108,7 +109,10 @@ class OrderController extends Controller
 
             $order->update();
 
-
+            if($request->coupon_code){
+                $limit_per_coupon = Coupon::where('coupon_code',$request->coupon_code)->first();
+                Coupon::where('coupon_code',$request->coupon_code)->update(['limit_per_coupon'=>$limit_per_coupon->limit_per_coupon - 1]);
+            }
 
             $data = [
                 'name' => optional($order->customer)->name,
@@ -493,6 +497,11 @@ class OrderController extends Controller
             $order->sub_total = $total;
             $order->discount_sub_total = $total - $request->discount;
             $order->grand_total = ( $total - $request->discount) + $request->shipping_charge;
+
+            if($request->coupon_code){
+                $limit_per_coupon = Coupon::where('coupon_code',$request->coupon_code)->first();
+                Coupon::where('coupon_code',$request->coupon_code)->update(['limit_per_coupon'=>$limit_per_coupon->limit_per_coupon - 1]);
+            }
 
             $data = [
                 'name' => optional($order->customer)->name,

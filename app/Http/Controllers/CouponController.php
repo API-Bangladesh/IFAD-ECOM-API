@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Coupon;
+use App\Models\CouponUserGroup;
 use Illuminate\Http\Request;
 
 class CouponController extends Controller
@@ -22,6 +23,56 @@ class CouponController extends Controller
 
 
         $subTotal = $request->sub_total;
+        // $currentCustomer=$request->customer_id;
+        // $include_customer_ids = json_decode($validCoupon->customer_id, true) ?? [];
+        // $individual_customer_ids = json_decode($validCoupon->include_customer_id, true) ?? [];
+
+
+        $currentCustomer = $request->customer_id; // Logged-in user's customer ID
+        $include_group_ids = json_decode($validCoupon->customer_id, true) ?? []; // User group IDs allowed by the coupon
+        $individual_customer_ids = json_decode($validCoupon->include_customer_id, true) ?? [];
+
+        // Directly included customer IDs
+
+// Fetch customer IDs for each user group mentioned in the coupon
+        if(($individual_customer_ids != null || '' || [] ) || ($include_group_ids != null || '' || [] )){
+
+                $group_customer_ids = [];
+                foreach ($include_group_ids as $group_id) {
+                // Assuming you have a model CouponUserGroup where 'group_id' and 'customer_ids' are columns
+                $group = CouponUserGroup::where('id', $group_id)->first();
+
+
+                if ($group) {
+                    $customers_in_group = json_decode($group->customer_id, true) ?? [];
+
+                    $group_customer_ids = array_merge($group_customer_ids, $customers_in_group);
+
+
+                }
+
+            }
+
+
+            $allowed_customer_ids = array_merge($individual_customer_ids, $group_customer_ids);
+            $allowed_customer_ids = array_unique($allowed_customer_ids);
+            // return $allowed_customer_ids;
+
+            // return $allowed_customer_ids;  // Remove duplicate IDs, if any
+
+            // Check if the current customer is allowed
+            if (!in_array($currentCustomer, $allowed_customer_ids)) {
+
+                return response()->json([
+                            'message' => 'Discount not applicable on this user.',
+                            // other response data as needed
+                        ], 406);
+            }
+
+
+        }
+
+
 
         // Check if the coupon has a minimum spend requirement and if the subtotal meets this requirement
         if (($validCoupon->coupon_min_spend !== null && $subTotal < $validCoupon->coupon_min_spend) ||
@@ -49,33 +100,92 @@ class CouponController extends Controller
             $sub_total=$request->sub_total;
             $previous_subtotal=$request->sub_total;
 
-            if($validCoupon->coupon_discount_type == 'fixed_amount_discount'){
-                 $shipping_charge = $request->shipping_charge;
-                if($validCoupon->is_free_delivery == 1){
-                    $shipping_charge= 0;
-                }else{
-                    $shipping_charge=$request->shipping_charge;
+        if ($validCoupon->coupon_discount_type == 'fixed_amount_discount') {
+                $discountApplied = false;
+
+                // return $currentCustomer;
+
+                $cart = $request['cart'];
+
+                $include_ids = json_decode($validCoupon->product_id, true) ?? [];
+                $exclude_ids = json_decode($validCoupon->exclude_id, true) ?? [];
+                $include_category_ids = json_decode($validCoupon->category_id, true) ?? [];
+                $exclude_category_ids = json_decode($validCoupon->exclude_category_id, true) ?? [];
+
+                $coupon_combo_ids = json_decode($validCoupon->combo_id, true) ?? [];
+                $coupon_exclude_combo_ids = json_decode($validCoupon->exclude_combo_id, true) ?? [];
+
+
+                $applyToAll = empty($include_ids) && empty($exclude_ids) && empty($include_category_ids) && empty($exclude_category_ids);
+
+                foreach ($cart as &$item) {
+                    $applyDiscount = false;
+
+                    if ($item['type'] === 'combo') {
+                        // Check if the combo ID is either included or excluded
+                        $isComboIncluded = in_array($item['combo_id'], $coupon_combo_ids);
+                        $isComboExcluded = in_array($item['combo_id'], $coupon_exclude_combo_ids);
+
+                        if (!empty($coupon_combo_ids) && $isComboIncluded && !$isComboExcluded) {
+                            // Apply discount to included combos that are not excluded
+                            $applyDiscount = true;
+                        } elseif (empty($coupon_combo_ids) && empty($coupon_exclude_combo_ids)) {
+                            // If no specific combo inclusion or exclusion, treat as normal item
+                            $applyDiscount = true;
+                        }
+                    } else {
+                        // Non-combo item logic
+                        $isExcluded = in_array((string)$item['inventory_id'], $exclude_ids) || in_array($item['category_id'], $exclude_category_ids);
+                        $isIncluded = in_array((string)$item['inventory_id'], $include_ids) || in_array($item['category_id'], $include_category_ids);
+
+                        $specificInclusion = !empty($include_category_ids) && in_array($item['category_id'], $include_category_ids) && in_array((string)$item['inventory_id'], $include_ids);
+                        $specificExclusion = !empty($exclude_category_ids) && in_array($item['category_id'], $exclude_category_ids) && in_array((string)$item['inventory_id'], $exclude_ids);
+
+                        if ($applyToAll && !$isExcluded) {
+                            $applyDiscount = true;
+                        } elseif (!$isExcluded) {
+                            if ($isIncluded || $specificInclusion) {
+                                $applyDiscount = true;
+                            } elseif (empty($include_ids) && empty($include_category_ids) && !$specificExclusion) {
+                                $applyDiscount = true;
+                            }
+                        }
+                    }
+
+                    // Apply discount
+                    if ($applyDiscount) {
+                        $item['total'] -= $validCoupon->coupon_amount;
+                        $discountApplied = true;
+                    }
                 }
-                $discountCouponAmount=$validCoupon->coupon_amount;
-                //return $shipping_charge;
-                $subtotalAmount=$sub_total-$validCoupon->coupon_amount;
 
-                $grand_total = $sub_total-$validCoupon->coupon_amount+$shipping_charge;
+                if (!$discountApplied) {
+                    return response()->json([
+                        'message' => 'No applicable items for discount.',
+                        // other response data as needed
+                    ], 406);
+                }
 
-                $TotalCoupon=$validCoupon->limit_per_coupon -1;
+                $sub_total = array_sum(array_column($cart, 'total'));
 
+                // Shipping charge logic
+                $shipping_charge = $validCoupon->is_free_delivery == 1 ? 0 : $request->shipping_charge;
 
+                // Calculate the grand total
+                $grand_total = $sub_total + $shipping_charge;
 
+                // Prepare the response
                 return response()->json([
                     'coupon_discount_type' => 'Fixed Amount Discount',
-                    'discount_coupon_amount' => $discountCouponAmount,
-                    'previous_subtotal' => $previous_subtotal,
-                    'sub_total' => $subtotalAmount,
+                    'discount_coupon_amount' => $validCoupon->coupon_amount,
+                    'previous_subtotal' => $request->sub_total,
+                    'sub_total' => $sub_total,
                     'shipping_charge' => $shipping_charge,
                     'grand_total' => $grand_total,
                 ], 200);
+            }
 
-           }
+
 
             if($validCoupon->coupon_discount_type == 'percentage_discount'){
 
@@ -194,7 +304,7 @@ class CouponController extends Controller
                                     'shipping_charge' => $shipping_charge,
                                     'grand_total' => $grand_total,
                                 ], 200);
-            }
+                        }
 
             }
 

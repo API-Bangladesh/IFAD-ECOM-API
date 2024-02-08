@@ -16,3 +16,4 @@ use Illuminate\Support\Facades\Route;
 Route::group(['middleware' => ['auth:api', 'verified']], function () {
     Route::get('/conditional_discount', 'ConditionalDiscountController@index');
 });
+

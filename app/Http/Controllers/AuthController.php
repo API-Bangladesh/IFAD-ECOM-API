@@ -17,6 +17,8 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use GuzzleHttp\Client;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+
 use function generateRandomClientTransId;
 use function generateRandomOTP;
 use function makeHttpRequest;
@@ -99,9 +101,17 @@ class AuthController extends Controller
                 }
             }
 
+            $customerId=Auth::user()->id;
+
+            $groups = DB::table('coupon_user_groups')->select('id','group_name')
+            ->where('status',1)
+            ->whereRaw("JSON_CONTAINS(customer_id, '\"$customerId\"')")
+            ->get();
+
             return make_success_response("Login successfully.", [
                 'token' => 'Bearer ' . $token,
                 'customer' => auth()->user(),
+                'group' => $groups,
                 'expires_in' => auth()->factory()->getTTL() * 60 * 24,
             ]);
         } catch (Exception $exception) {

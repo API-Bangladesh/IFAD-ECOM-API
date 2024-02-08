@@ -182,4 +182,5 @@ $router->group(['prefix' => 'ecom'], function () use ($router) {
     include_once 'ecom/Districts.php';
     include_once 'ecom/Upazila.php';
     include_once 'ecom/Coupon.php';
+    include_once 'ecom/ConditionalDiscount.php';
 });

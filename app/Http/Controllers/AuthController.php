@@ -53,10 +53,18 @@ class AuthController extends Controller
             if (!$token = Auth::attempt($credentials)) {
                 return response()->json(['message' => 'Unauthorized'], 401);
             }
+            $customerId=Auth::user()->id;
+
+            $groups = DB::table('coupon_user_groups')->select('id','group_name')
+            ->where('status',1)
+            ->whereRaw("JSON_CONTAINS(customer_id, '\"$customerId\"')")
+            ->get();
+
 
             return make_success_response("Login successfully.", [
                 'token' => 'Bearer ' . $token,
                 'customer' => auth()->user(),
+                'group' => $groups,
                 'expires_in' => auth()->factory()->getTTL() * 60 * 24,
             ]);
         } catch (Exception $exception) {
@@ -389,9 +397,17 @@ class AuthController extends Controller
             $customer->otp = null;
             $customer->update();
 
+            $customerId=Auth::user()->id;
+
+            $groups = DB::table('coupon_user_groups')->select('id','group_name')
+                ->where('status',1)
+                ->whereRaw("JSON_CONTAINS(customer_id, '\"$customerId\"')")
+                ->get();
+
             return make_success_response("Login successfully.", [
                 'token' => 'Bearer ' . $token,
                 'customer' => auth()->user(),
+                'group' => $groups,
                 'expires_in' => auth()->factory()->getTTL() * 60 * 24,
             ]);
         } catch (\Exception $exception) {
@@ -434,10 +450,17 @@ class AuthController extends Controller
             if (!$token) {
                 return response()->json(['message' => 'Unauthorized'], 401);
             }
+            $customerId=Auth::user()->id;
+
+            $groups = DB::table('coupon_user_groups')->select('id','group_name')
+            ->where('status',1)
+            ->whereRaw("JSON_CONTAINS(customer_id, '\"$customerId\"')")
+            ->get();
 
             return make_success_response("Login successfully.", [
                 'token' => 'Bearer ' . $token,
                 'customer' => auth()->user(),
+                'group' => $groups,
                 'expires_in' => auth()->factory()->getTTL() * 60 * 24,
             ]);
         } catch (\Exception $exception) {
@@ -524,9 +547,17 @@ class AuthController extends Controller
             $customer->otp = null;
             $customer->update();
 
+            $customerId=Auth::user()->id;
+
+            $groups = DB::table('coupon_user_groups')->select('id','group_name')
+            ->where('status',1)
+            ->whereRaw("JSON_CONTAINS(customer_id, '\"$customerId\"')")
+            ->get();
+
             return make_success_response("Login successfully.", [
                 'token' => 'Bearer ' . $token,
                 'customer' => auth()->user(),
+                'group' => $groups,
                 'expires_in' => auth()->factory()->getTTL() * 60 * 24,
             ]);
         } catch (\Exception $exception) {

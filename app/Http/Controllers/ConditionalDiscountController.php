@@ -11,8 +11,11 @@ use Illuminate\Support\Facades\DB;
 class ConditionalDiscountController extends Controller
 {
     public function index(){
-        $ConditionalDiscount = ConditionalDiscount::where('status',1)->get();
-        return $ConditionalDiscount;
+        $conditionalDiscount = ConditionalDiscount::where('condition_exp_date', '>=', now())
+        ->where('status', 1)
+        ->get();
+
+        return $conditionalDiscount;
     }
     // public function groupId(Request $request)
     // {

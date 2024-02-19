@@ -16,6 +16,12 @@ class CouponController extends Controller
         ->where('coupon_exp_date', '>', now()) // Assuming 'coupon_exp_date' is a datetime column
         ->where('limit_per_coupon', '>', 0)
         ->first();
+        if (!$validCoupon) {
+            return response()->json([
+                'code' => 400,
+                'message' => 'Invalid Coupon',
+            ], 400);
+        }
 
         $subTotal = $request->sub_total;
 

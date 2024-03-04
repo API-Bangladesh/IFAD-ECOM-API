@@ -120,32 +120,41 @@ class CouponController extends Controller
                     foreach ($cart as &$item) {
                         $applyDiscount = false;
 
-                        if ($item['type'] === 'combo') {
-                            // Check if the combo ID is either included or excluded
-                            $isComboIncluded = in_array($item['combo_id'], $coupon_combo_ids);
-                            $isComboExcluded = in_array($item['combo_id'], $coupon_exclude_combo_ids);
+                      if ($item['type'] === 'combo') {
+                                // Check if the combo ID is either included or excluded
+                                $isComboIncluded = in_array($item['combo_id'], $coupon_combo_ids);
+                                $isComboExcluded = in_array($item['combo_id'], $coupon_exclude_combo_ids);
+                             
 
-                                if((!empty($coupon_combo_ids) && $isComboIncluded && !$isComboExcluded)){
+                               if((!empty($coupon_combo_ids) && $isComboIncluded && !$isComboExcluded)){
                                     $applyDiscount = true;
-                                  
-                                }else if($applyToAll){
-                                    $applyDiscount = true;
-                                }else if((empty($coupon_combo_ids) && empty($coupon_exclude_combo_ids) && empty($include_ids) && empty($include_category_ids))){
-                                   
-                                    $applyDiscount = true;
-                                }else if(!empty($coupon_exclude_combo_ids) && !empty($coupon_combo_ids) && !$isComboExcluded){
-                                  
-                                    $applyDiscount = true;
-                                }else if(!empty($coupon_exclude_combo_ids) && !$isComboExcluded){
-                                    $applyDiscount = true;
+                                    
+                                    }else if($applyToAll){
+                                        $applyDiscount = true;
+                                    }else if((empty($coupon_combo_ids) && empty($coupon_exclude_combo_ids) && empty($include_ids) && empty($include_category_ids))){
+                                    
+                                        $applyDiscount = true;
+                                    }else if(!empty($coupon_exclude_combo_ids) && !empty($coupon_combo_ids) && !$isComboExcluded){
+                                    
+                                        $applyDiscount = true;
+                                    }else if(!empty($coupon_exclude_combo_ids) && !$isComboExcluded){
+                                        $applyDiscount = true;
                                 }
-                        } else {
+                    } else {
                             // Non-combo item logic
-                          $isExcluded = (empty($exclude_ids) && empty($exclude_category_ids)) ? false :
-                          (in_array((string)$item['inventory_id'], $exclude_ids) || in_array($item['category_id'], $exclude_category_ids));
+                             $isExcludedProduct = empty($exclude_ids) ? false :
+                                    in_array((string)$item['inventory_id'], $exclude_ids);
 
-                           $isIncluded = (empty($include_ids) && empty($include_category_ids)) ? false :
-                          (in_array((string)$item['inventory_id'], $include_ids) || in_array($item['category_id'], $include_category_ids));
+                         $isExcludedCategory =  empty($exclude_category_ids) ? false :
+                                   in_array((string)$item['category_id'], $exclude_category_ids);
+                                
+                              
+
+                           $isIncludedProduct = empty($include_ids) ? false :
+                          in_array((string)$item['inventory_id'], $include_ids);
+
+                          $isIncludedCategory =  empty($include_category_ids) ? false :
+                         in_array((string)$item['category_id'], $include_category_ids);
                      
                            
                     
@@ -153,18 +162,28 @@ class CouponController extends Controller
                             $specificInclusion = !empty($include_category_ids) && in_array($item['category_id'], $include_category_ids) && in_array((string)$item['inventory_id'], $include_ids);
                             $specificExclusion = !empty($exclude_category_ids) && in_array($item['category_id'], $exclude_category_ids) && in_array((string)$item['inventory_id'], $exclude_ids);
 
-                             if ($applyToAll && !$isExcluded) {
-                          
-                                $applyDiscount = true;
-                            } elseif (!$isExcluded) {
-                                if ($isIncluded || $specificInclusion) {
-                                   
+                                if ($applyToAll) {
+                            
                                     $applyDiscount = true;
-                                }else if($applyExceptCombo){
-                                     $applyDiscount = true;
-                                }else if(!$isExcluded){
+                                } 
+                                  
+                                if (!$isExcludedProduct && !$isExcludedCategory) {
+                                
+                                    if ($isIncludedProduct || $isIncludedCategory || $specificInclusion) {
+                                        
+                                            $applyDiscount = true;
+                                        
+                                    }else if($applyExceptCombo){
+                                     
+                            
                                         $applyDiscount = true;
-                                }
+                                    }else if((empty($include_ids) && !empty($exclude_ids))  && (!$isExcludedProduct || !$isExcludedCategory) ){
+                                
+                                            $applyDiscount = true;
+                                    }else if((empty($include_category_ids) && !empty($exclude_category_ids))   && (!$isExcludedProduct || !$isExcludedCategory)){
+                                
+                                            $applyDiscount = true;
+                                    }
                             }
                         }
 
@@ -201,8 +220,8 @@ class CouponController extends Controller
                     ], 200);
         }
 
-
         if ($validCoupon->coupon_discount_type == 'percentage_discount') {
+            
                         $discountApplied = false;
 
                         // return $currentCustomer;
@@ -221,7 +240,9 @@ class CouponController extends Controller
                         $applyToAll = empty($include_ids) && empty($exclude_ids) && empty($include_category_ids) && empty($exclude_category_ids) && empty($coupon_combo_ids) && empty($coupon_exclude_combo_ids);
 
                         $applyExceptCombo = empty($include_ids) && empty($exclude_ids) && empty($include_category_ids) && empty($exclude_category_ids) && empty($coupon_combo_ids);
+                        
                         foreach ($cart as &$item) {
+                          
                             $applyDiscount = false;
                             
 
@@ -246,40 +267,66 @@ class CouponController extends Controller
                                     $applyDiscount = true;
                                 }
                             } else {
+                                   
                                 
                                 // Non-combo item logic
-                                 $isExcluded = (empty($exclude_ids) && empty($exclude_category_ids)) ? false :
-                                    (in_array((string)$item['inventory_id'], $exclude_ids) || in_array($item['category_id'], $exclude_category_ids));
+                        $isExcludedProduct = empty($exclude_ids) ? false :
+                                    in_array((string)$item['inventory_id'], $exclude_ids);
 
-                           $isIncluded = (empty($include_ids) && empty($include_category_ids)) ? false :
-                          (in_array((string)$item['inventory_id'], $include_ids) || in_array($item['category_id'], $include_category_ids));
+                         $isExcludedCategory =  empty($exclude_category_ids) ? false :
+                                   in_array((string)$item['category_id'], $exclude_category_ids);
+                                
+                              
 
-                            $specificInclusion = !empty($include_category_ids) && in_array($item['category_id'], $include_category_ids) && in_array((string)$item['inventory_id'], $include_ids);
-                            $specificExclusion = !empty($exclude_category_ids) && in_array($item['category_id'], $exclude_category_ids) && in_array((string)$item['inventory_id'], $exclude_ids);
+                           $isIncludedProduct = empty($include_ids) ? false :
+                          in_array((string)$item['inventory_id'], $include_ids);
 
-                                 if ($applyToAll && !$isExcluded) {
-                          
+                          $isIncludedCategory =  empty($include_category_ids) ? false :
+                         in_array((string)$item['category_id'], $include_category_ids);
+
+                            $specificInclusion = !empty($include_category_ids) && in_array((string)$item['category_id'], $include_category_ids) && in_array((string)$item['inventory_id'], $include_ids);
+                            $specificExclusion = !empty($exclude_category_ids) && in_array((string)$item['category_id'], $exclude_category_ids) && in_array((string)$item['inventory_id'], $exclude_ids);
+                         
+                              
+                                 if ($applyToAll) {
+                            
                                     $applyDiscount = true;
-                                } elseif (!$isExcluded) {
-                                    if ($isIncluded || $specificInclusion) {
-                                    
+                                } 
+                                  
+                                if (!$isExcludedProduct && !$isExcludedCategory) {
+                                
+                                    if ($isIncludedProduct || $isIncludedCategory || $specificInclusion) {
+                                        
+                                            $applyDiscount = true;
+                                        
+                                    }else if($applyExceptCombo){
+                                     
+                            
                                         $applyDiscount = true;
-                                }else if($applyExceptCombo){
-                                     $applyDiscount = true;
-                                }else if(!$isExcluded){
-                                        $applyDiscount = true;
-                                }
+                                    }else if((empty($include_ids) && !empty($exclude_ids))  && (!$isExcludedProduct || !$isExcludedCategory) ){
+                                
+                                            $applyDiscount = true;
+                                    }else if((empty($include_category_ids) && !empty($exclude_category_ids))   && (!$isExcludedProduct || !$isExcludedCategory)){
+                                
+                                            $applyDiscount = true;
+                                    }
                             }
                         }
-
+                            
                             // Apply discount
                             if ($applyDiscount) {
+                                
                                 $discount_amount = $item['total'] * $validCoupon->coupon_amount / 100;
+                               
                                 $item['total'] -= $discount_amount;
+                          
                                 $discountApplied = true;
+                                $sub_total = array_sum(array_column($cart, 'total'));
+                            
                             }
+                            
                         }
-
+                         
                         if (!$discountApplied) {
                             return response()->json([
                                 'message' => 'No applicable items for discount.',
@@ -287,7 +334,9 @@ class CouponController extends Controller
                             ], 406);
                         }
 
-                        $sub_total = array_sum(array_column($cart, 'total'));
+                         
+                     
+                        
 
                         // Shipping charge logic
                         $shipping_charge = $validCoupon->is_free_delivery == 1 ? 0 : $request->shipping_charge;
@@ -326,52 +375,67 @@ class CouponController extends Controller
                     foreach ($cart as &$item) {
                         $applyDiscount = false;
 
-                        if ($item['type'] === 'combo') {
-                            // Combo item logic
-                            // Check if the combo ID is either included or excluded
-                            $isComboIncluded = in_array($item['combo_id'], $coupon_combo_ids);
-                            $isComboExcluded = in_array($item['combo_id'], $coupon_exclude_combo_ids);
-
-                              if((!empty($coupon_combo_ids) && $isComboIncluded && !$isComboExcluded)){
+                       if ($item['type'] === 'combo') {
+                                // Check if the combo ID is either included or excluded
+                                $isComboIncluded = in_array($item['combo_id'], $coupon_combo_ids);
+                                $isComboExcluded = in_array($item['combo_id'], $coupon_exclude_combo_ids);
                              
+
+                               if((!empty($coupon_combo_ids) && $isComboIncluded && !$isComboExcluded)){
                                     $applyDiscount = true;
                                   
                                 }else if($applyToAll){
-                               
                                     $applyDiscount = true;
                                 }else if((empty($coupon_combo_ids) && empty($coupon_exclude_combo_ids) && empty($include_ids) && empty($include_category_ids))){
                                    
                                     $applyDiscount = true;
                                 }else if(!empty($coupon_exclude_combo_ids) && !empty($coupon_combo_ids) && !$isComboExcluded){
-                                 
+                                  
                                     $applyDiscount = true;
                                 }else if(!empty($coupon_exclude_combo_ids) && !$isComboExcluded){
-                                    
                                     $applyDiscount = true;
                                 }
-                        } else {
+                        }else {
                             // Non-combo item logic
-                          $isExcluded = (empty($exclude_ids) && empty($exclude_category_ids)) ? false :
-                          (in_array((string)$item['inventory_id'], $exclude_ids) || in_array($item['category_id'], $exclude_category_ids));
+                        $isExcludedProduct = empty($exclude_ids) ? false :
+                                    in_array((string)$item['inventory_id'], $exclude_ids);
 
-                           $isIncluded = (empty($include_ids) && empty($include_category_ids)) ? false :
-                          (in_array((string)$item['inventory_id'], $include_ids) || in_array($item['category_id'], $include_category_ids));
+                         $isExcludedCategory =  empty($exclude_category_ids) ? false :
+                                   in_array((string)$item['category_id'], $exclude_category_ids);
+                                
+                              
+
+                           $isIncludedProduct = empty($include_ids) ? false :
+                          in_array((string)$item['inventory_id'], $include_ids);
+
+                          $isIncludedCategory =  empty($include_category_ids) ? false :
+                         in_array((string)$item['category_id'], $include_category_ids);
 
                             $specificInclusion = !empty($include_category_ids) && in_array($item['category_id'], $include_category_ids) && in_array((string)$item['inventory_id'], $include_ids);
                             $specificExclusion = !empty($exclude_category_ids) && in_array($item['category_id'], $exclude_category_ids) && in_array((string)$item['inventory_id'], $exclude_ids);
 
-                            if ($applyToAll && !$isExcluded) {
-                          
-                                $applyDiscount = true;
-                            } elseif (!$isExcluded) {
-                                if ($isIncluded || $specificInclusion) {
-                                   
+                               if ($applyToAll) {
+                            
                                     $applyDiscount = true;
-                                }else if($applyExceptCombo){
-                                     $applyDiscount = true;
-                                }else if(!$isExcluded){
+                                } 
+                                  
+                                if (!$isExcludedProduct && !$isExcludedCategory) {
+                                
+                                    if ($isIncludedProduct || $isIncludedCategory || $specificInclusion) {
+                                        
+                                            $applyDiscount = true;
+                                        
+                                    }else if($applyExceptCombo){
+                                     
+                            
                                         $applyDiscount = true;
-                                }
+                                    }else if((empty($include_ids) && !empty($exclude_ids))  && (!$isExcludedProduct || !$isExcludedCategory) ){
+                                
+                                            $applyDiscount = true;
+                                    }else if((empty($include_category_ids) && !empty($exclude_category_ids))   && (!$isExcludedProduct || !$isExcludedCategory)){
+                                
+                                            $applyDiscount = true;
+                                    }
                             }
                         }
 

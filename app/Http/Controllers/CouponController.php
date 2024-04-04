@@ -11,11 +11,18 @@ class CouponController extends Controller
     public function index(Request $request)
     {
 
+          $coupon = Coupon::where('coupon_code', $request->coupon_code)->first();
+   
 
         $validCoupon = Coupon::where('coupon_code', $request->coupon_code)
-        ->where('coupon_exp_date', '>', now()) // Assuming 'coupon_exp_date' is a datetime column
-        ->where('limit_per_coupon', '>', 0)
-        ->first();
+            ->where('coupon_exp_date', '>', now()) // Assuming 'coupon_exp_date' is a datetime column
+            ->when($coupon != null && $coupon->limit_per_coupon != null, function ($query) use ($coupon) {
+                return $query->where('limit_per_coupon', '>', 0);
+            })->first();
+        // $validCoupon = Coupon::where('coupon_code', $request->coupon_code)
+        // ->where('coupon_exp_date', '>', now()) // Assuming 'coupon_exp_date' is a datetime column
+        // ->where('limit_per_coupon', '>', 0)
+        // ->first();
         if (!$validCoupon) {
             return response()->json([
                 'code' => 400,

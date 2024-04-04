@@ -111,8 +111,17 @@ class OrderController extends Controller
 
             if($request->coupon_code){
                 $limit_per_coupon = Coupon::where('coupon_code',$request->coupon_code)->first();
-                Coupon::where('coupon_code',$request->coupon_code)->update(['limit_per_coupon'=>$limit_per_coupon->limit_per_coupon - 1]);
+                if($limit_per_coupon->limit_per_coupon != null){
+                    Coupon::where('coupon_code',$request->coupon_code)->update(['limit_per_coupon'=>$limit_per_coupon->limit_per_coupon - 1]);
+                }
+         
             }
+
+            // if($request->coupon_code){
+            //     $limit_per_coupon = Coupon::where('coupon_code',$request->coupon_code)->first();
+
+            //     Coupon::where('coupon_code',$request->coupon_code)->update(     ['limit_per_coupon'=>$limit_per_coupon->limit_per_coupon - 1]);
+            // }
 
             $data = [
                 'name' => optional($order->customer)->name,

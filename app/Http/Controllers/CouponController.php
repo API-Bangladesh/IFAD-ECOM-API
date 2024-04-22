@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Coupon;
+use App\Models\CouponUsageLog;
 use App\Models\CouponUserGroup;
 use Illuminate\Http\Request;
 
@@ -11,17 +12,45 @@ class CouponController extends Controller
     public function index(Request $request)
     {
         $coupon = Coupon::where('coupon_code', $request->coupon_code)->first();
-$validCoupon = Coupon::where('coupon_code', $request->coupon_code)
-    ->where('coupon_exp_date', '>', now())
-    ->when(isset($coupon) && $coupon->limit_per_coupon !== null, function ($query) use ($coupon) {
-        return $query->where('limit_per_coupon', '>', 0);
-    })
-    ->first();
+        $validCoupon = Coupon::where('coupon_code', $request->coupon_code)
+            ->where('coupon_exp_date', '>', now())
+            ->when(isset($coupon) && $coupon->limit_per_coupon !== null, function ($query) use ($coupon) {
+                return $query->where('limit_per_coupon', '>', 0);
+            })
+            ->first();
+
+       
+
+        // Check usage limit and daily limit
+       $isInvalid=0;
+        if($coupon->limit_usage_times !== null || $coupon->limit_per_user !== null){
+               $usage_log=CouponUsageLog::where('coupon_id',$validCoupon->id)->where('customer_id',$request->customer_id)->first();
+               
+               if($usage_log){
+                        if($usage_log->total_usage !==null && $coupon->limit_usage_times !== null && $usage_log->total_usage >= $coupon->limit_usage_times){
+                            
+                            $isInvalid=1;
+                        }else if($usage_log->daily_usage !==null && $coupon->limit_per_user !== null && $usage_log->daily_usage >= $coupon->limit_per_user){
+                          
+                                $isInvalid=1;
+                        }else{
+                            $isInvalid=0;
+                        }
+               }
+           
+             
+        }
+         
+
+             
+
+
+
         // $validCoupon = Coupon::where('coupon_code', $request->coupon_code)
         // ->where('coupon_exp_date', '>', now()) // Assuming 'coupon_exp_date' is a datetime column
         // ->where('limit_per_coupon', '>', 0)
         // ->first();
-        if (!$validCoupon) {
+        if (!$validCoupon || $isInvalid == 1) {
             return response()->json([
                 'code' => 400,
                 'message' => 'Invalid Coupon',

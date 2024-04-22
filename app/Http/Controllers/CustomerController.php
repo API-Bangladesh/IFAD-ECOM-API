@@ -38,7 +38,8 @@ class CustomerController extends Controller
                 'name' => ['required'],
                 'date_of_birth' => ['nullable'],
                 'gender' => ['nullable'],
-                'phone_number' => ['required'],
+                'phone_number' => ['nullable'],
+                'email' => ['nullable'],
             ];
 
             if ($request->hasFile('image')) {
@@ -48,11 +49,12 @@ class CustomerController extends Controller
             $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
-                return make_validation_error_response($validator->getMessageBag());
+                return make_validation_error_response($validator->errors());
             }
 
             $customer = Customer::findOrFail(Auth::id());
             $customer->name = $request->name;
+            $customer->email = $request->email;
             $customer->date_of_birth = $request->date_of_birth;
             $customer->gender = $request->gender;
             $customer->phone_number = $request->phone_number;

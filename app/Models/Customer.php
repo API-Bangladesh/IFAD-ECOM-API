@@ -72,4 +72,8 @@ class Customer extends Model implements AuthenticatableContract, AuthorizableCon
     {
         return $this->hasMany(Address::class);
     }
+    public function groups()
+    {
+        return $this->belongsToMany(CouponUserGroup::class, 'coupon_user_groups', 'customer_id');
+    }
 }

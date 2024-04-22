@@ -10,20 +10,22 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
-class GoogleSocialLogin extends Controller
+class FacebookSocialLogin extends Controller
 {
     /**
      * @return string|void
      */
     public function login()
     {
+
+
         try {
-            $url = config('services.google.auth_uri') . '?' . http_build_query([
-                    'client_id' => config('services.google.client_id'),
-                    'redirect_uri' => config('services.google.redirect_uri'),
+            $url = config('services.facebook.auth_uri') . '?' . http_build_query([
+                    'client_id' => config('services.facebook.client_id'),
+                    'redirect_uri' => config('services.facebook.redirect_uri'),
                     'response_type' => 'code',
                     'scope' => 'openid profile email',
-                    'state' => config('services.google.state'),
+                    'state' => config('services.facebook.state'),
                 ]);
 
             return response()->json([
@@ -43,19 +45,19 @@ class GoogleSocialLogin extends Controller
     public function callback(Request $request)
     {
         try {
-            if ($request->input('state') !== config('services.google.state')) {
+            if ($request->input('state') !== config('services.facebook.state')) {
                 throw new \Exception("Invalid state parameter.");
             }
 
             $code = $request->input('code');
 
             $tokenResponse = Http::withOptions([
-                'verify' => env('APP_ENV') === 'production'
-            ])->post(config('services.google.token_uri'), [
+                'verify' => env('APP_ENV') === 'local'
+            ])->post(config('services.facebook.token_uri'), [
                 'code' => $code,
-                'client_id' => config('services.google.client_id'),
-                'client_secret' => config('services.google.client_secret'),
-                'redirect_uri' => config('services.google.redirect_uri'),
+                'client_id' => config('services.facebook.client_id'),
+                'client_secret' => config('services.facebook.client_secret'),
+                'redirect_uri' => config('services.facebook.redirect_uri'),
                 'grant_type' => 'authorization_code',
             ]);
 
@@ -64,8 +66,9 @@ class GoogleSocialLogin extends Controller
             $customerResponse = Http::withHeaders([
                 'Authorization' => 'Bearer ' . urlencode($accessToken),
             ])->withOptions([
-                'verify' => env('APP_ENV') === 'production'
-            ])->get(config('services.google.userinfo_uri'));
+                'verify' => env('APP_ENV') === 'local'
+            ])->get(config('services.facebook.userinfo_uri'));
+
 
             $name = optional($customerResponse)['name'];
             $email = optional($customerResponse)['email'];

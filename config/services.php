@@ -24,4 +24,18 @@ return [
         'state' => '5=ZuSnY&xBXEgXT6',
     ],
 
+    'facebook' => [
+        'client_id' => env('FACEBOOK_APP_ID', ''),
+        'client_secret' => env('FACEBOOK_APP_SECRET', ''),
+        'redirect_uri' => env('FACEBOOK_REDIRECT_URI', ''),
+        'auth_uri' => 'https://www.facebook.com/dialog/oauth',
+        'token_uri' => 'https://graph.facebook.com/v13.0/oauth/access_token',
+        'userinfo_uri' => 'https://graph.facebook.com/v13.0/me',
+        // Fields to retrieve from the user profile, e.g., 'name,email,picture'
+        'fields' => 'name,email',
+        'state' => '5=ZuSnY&xBXEgXT7',
+      
+    ],
+
+
 ];

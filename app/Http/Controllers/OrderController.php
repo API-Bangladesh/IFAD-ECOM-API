@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\Coupon;
 use App\Models\OrderItem;
 use Exception;
+use Illuminate\Support\Facades\DB;
+use App\Models\CouponUsageLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -109,8 +111,58 @@ class OrderController extends Controller
 
             $order->update();
 
-            if($request->coupon_code){
+          if($request->coupon_code){
                 $limit_per_coupon = Coupon::where('coupon_code',$request->coupon_code)->first();
+                // record of total usage for a user
+                if($limit_per_coupon->limit_usage_times != null){
+       
+                      $todayDate = now()->toDateString();
+                      $total_usage = CouponUsageLog::updateOrCreate(
+                        [
+                            'customer_id' => Auth::id(),
+                            'coupon_id' => $limit_per_coupon->id,
+                            // Assuming you're tracking usage by date
+                        ],
+                        [
+                            'total_usage' => DB::raw('IFNULL(total_usage, 0) + 1'), // Increment total_usage by 1
+                            'updated_by' => 'system', // Set updated_by if needed
+                            'created_at' => DB::raw('NOW()') // Set created_at if creating a new record
+                        ]
+                    );
+                }
+                // record of daily usage for a user
+              if ($limit_per_coupon->limit_per_user != null) {
+                        $todayDate = now()->toDateString();
+                        $check_date=  CouponUsageLog::where('customer_id', Auth::id())
+                            ->where('coupon_id', $limit_per_coupon->id)->first();
+ 
+                        if($check_date->usage_date != null && $check_date->usage_date < $todayDate){
+                            $gg=$check_date->usage_date < $todayDate;
+                     
+                            CouponUsageLog::where('customer_id', Auth::id())
+                            ->where('coupon_id', $limit_per_coupon->id)
+                            ->update(['daily_usage' => 1,'usage_date' => $todayDate]);
+
+                        }else{
+                          
+                       
+                             $usageLog = CouponUsageLog::updateOrCreate(
+                            [
+                            'customer_id' => Auth::id(),
+                            'coupon_id' => $limit_per_coupon->id,
+                            
+                            ],
+                            [
+                            'daily_usage' => DB::raw('IFNULL(daily_usage, 0) + 1'), 
+                            'usage_date' => $todayDate,// Set 0 for non-today dates
+                            'updated_by' => 'system', // Set updated_by if needed
+                            ]
+                        );
+                    }      
+            }
+
+
+
                 if($limit_per_coupon->limit_per_coupon != null){
                     Coupon::where('coupon_code',$request->coupon_code)->update(['limit_per_coupon'=>$limit_per_coupon->limit_per_coupon - 1]);
                 }
@@ -509,7 +561,60 @@ class OrderController extends Controller
 
             if($request->coupon_code){
                 $limit_per_coupon = Coupon::where('coupon_code',$request->coupon_code)->first();
-                Coupon::where('coupon_code',$request->coupon_code)->update(['limit_per_coupon'=>$limit_per_coupon->limit_per_coupon - 1]);
+                // record of total usage for a user
+                if($limit_per_coupon->limit_usage_times != null){
+       
+                      $todayDate = now()->toDateString();
+                      $total_usage = CouponUsageLog::updateOrCreate(
+                        [
+                            'customer_id' => Auth::id(),
+                            'coupon_id' => $limit_per_coupon->id,
+                            // Assuming you're tracking usage by date
+                        ],
+                        [
+                            'total_usage' => DB::raw('IFNULL(total_usage, 0) + 1'), // Increment total_usage by 1
+                            'updated_by' => 'system', // Set updated_by if needed
+                            'created_at' => DB::raw('NOW()') // Set created_at if creating a new record
+                        ]
+                    );
+                }
+                // record of daily usage for a user
+              if ($limit_per_coupon->limit_per_user != null) {
+                        $todayDate = now()->toDateString();
+                        $check_date=  CouponUsageLog::where('customer_id', Auth::id())
+                            ->where('coupon_id', $limit_per_coupon->id)->first();
+ 
+                        if($check_date->usage_date != null && $check_date->usage_date < $todayDate){
+                            $gg=$check_date->usage_date < $todayDate;
+                     
+                            CouponUsageLog::where('customer_id', Auth::id())
+                            ->where('coupon_id', $limit_per_coupon->id)
+                            ->update(['daily_usage' => 1,'usage_date' => $todayDate]);
+
+                        }else{
+                          
+                       
+                             $usageLog = CouponUsageLog::updateOrCreate(
+                            [
+                            'customer_id' => Auth::id(),
+                            'coupon_id' => $limit_per_coupon->id,
+                            
+                            ],
+                            [
+                            'daily_usage' => DB::raw('IFNULL(daily_usage, 0) + 1'), 
+                            'usage_date' => $todayDate,// Set 0 for non-today dates
+                            'updated_by' => 'system', // Set updated_by if needed
+                            ]
+                        );
+                    }      
+            }
+
+
+
+                if($limit_per_coupon->limit_per_coupon != null){
+                    Coupon::where('coupon_code',$request->coupon_code)->update(['limit_per_coupon'=>$limit_per_coupon->limit_per_coupon - 1]);
+                }
+         
             }
 
             $data = [
